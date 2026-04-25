@@ -7,7 +7,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.4",
+    version: "1.0.5",
   });
 
   // ═══════════════════════════════════════════════════════════

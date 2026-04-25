@@ -6,6 +6,7 @@ import type { Response } from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { createServer } from "./server.js";
+import { renderLandingPage, LLMS_TXT, DISCOVERY_JSON } from "./landing.js";
 
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
@@ -59,14 +60,25 @@ app.use(
   })
 );
 
-app.get("/", (_req, res) => {
-  res.json({
-    name: "DOOMSCROLLR MCP Remote",
-    transport: "streamable-http",
-    endpoint: "/mcp",
-    auth: "Authorization: Bearer <DOOMSCROLLR_API_KEY>",
-    apiBase: baseUrl,
-  });
+app.get("/", (req, res) => {
+  if ((req.headers.accept || "").includes("application/json")) {
+    res.json(DISCOVERY_JSON);
+    return;
+  }
+
+  res
+    .status(200)
+    .set("Content-Type", "text/html; charset=utf-8")
+    .set("Cache-Control", "public, max-age=300")
+    .send(renderLandingPage());
+});
+
+app.get("/.well-known/mcp", (_req, res) => {
+  res.json(DISCOVERY_JSON);
+});
+
+app.get("/llms.txt", (_req, res) => {
+  res.set("Content-Type", "text/plain; charset=utf-8").send(LLMS_TXT);
 });
 
 app.get("/health", (_req, res) => {
