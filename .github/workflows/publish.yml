@@ -1,0 +1,101 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Read package version
+        id: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Package version: $VERSION"
+
+      - name: Check if npm version already published
+        id: npm_check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=${{ steps.pkg.outputs.version }}
+          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "${NAME}@${VERSION} already on npm — skipping npm publish"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "${NAME}@${VERSION} not on npm — will publish"
+          fi
+
+      - name: Publish to npm
+        if: steps.npm_check.outputs.published == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+      - name: Read server.json version
+        id: server
+        run: |
+          VERSION=$(node -p "require('./server.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Registry version: $VERSION"
+
+      - name: Install mcp-publisher
+        run: |
+          curl -sSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m).tar.gz" \
+            | tar -xz -C /tmp mcp-publisher
+          sudo mv /tmp/mcp-publisher /usr/local/bin/mcp-publisher
+          mcp-publisher --version || true
+
+      - name: Validate registry metadata
+        run: mcp-publisher validate
+
+      - name: Check if registry version already published
+        id: reg_check
+        run: |
+          VERSION=${{ steps.server.outputs.version }}
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://registry.modelcontextprotocol.io/v0/servers?search=com.doomscrollr/mcp")
+          if curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=com.doomscrollr/mcp" | grep -q "\"version\":\"$VERSION\""; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "com.doomscrollr/mcp@$VERSION already in registry — skipping"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "com.doomscrollr/mcp@$VERSION not in registry — will publish"
+          fi
+
+      - name: Publish to MCP Registry
+        if: steps.reg_check.outputs.published == 'false'
+        env:
+          MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
+        run: |
+          mcp-publisher login dns --domain doomscrollr.com --private-key "$MCP_REGISTRY_PRIVATE_KEY"
+          mcp-publisher publish
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### MCP publish summary" >> $GITHUB_STEP_SUMMARY
+          echo "- npm @doomscrollr/mcp-server@${{ steps.pkg.outputs.version }} — already_published=${{ steps.npm_check.outputs.published }}" >> $GITHUB_STEP_SUMMARY
+          echo "- registry com.doomscrollr/mcp@${{ steps.server.outputs.version }} — already_published=${{ steps.reg_check.outputs.published }}" >> $GITHUB_STEP_SUMMARY
