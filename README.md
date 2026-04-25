@@ -85,16 +85,14 @@ All tools are namespaced `doomscrollr_*`.
 
 ## Remote HTTPS (Streamable HTTP)
 
-For remote MCP clients, DOOMSCROLLR also supports **Streamable HTTP**.
-
-Endpoint:
+DOOMSCROLLR runs a hosted Streamable HTTP MCP endpoint for remote MCP clients (ChatGPT remote connectors, Claude Messages API, etc).
 
 ```text
-POST /mcp
+POST https://mcp.doomscrollr.com/mcp
 Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY
 ```
 
-The bearer token is just your normal DOOMSCROLLR API key from the dashboard.
+The bearer token is your normal DOOMSCROLLR API key from the dashboard. No OAuth setup, no extra signup.
 
 ### Run the remote server locally
 

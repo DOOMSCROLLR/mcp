@@ -3,7 +3,7 @@
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
   "description": "Build and operate an owned creator audience on DOOMSCROLLR \u2014 posts, products, subscribers, domains.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "repository": {
     "url": "https://github.com/aaayersss/doomscrollr",
     "source": "github",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "@doomscrollr/mcp-server",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "transport": {
         "type": "stdio"
       },
@@ -39,7 +39,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://doomscrollr-mcp-947725b885f2.herokuapp.com/mcp",
+      "url": "https://mcp.doomscrollr.com/mcp",
       "headers": [
         {
           "name": "Authorization",
