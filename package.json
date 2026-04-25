@@ -1,0 +1,61 @@
+{
+  "name": "@doomscrollr/mcp-server",
+  "version": "1.0.3",
+  "mcpName": "com.doomscrollr/mcp",
+  "description": "DOOMSCROLLR MCP server — AI agents create DOOMSCROLLRs, publish posts, manage subscribers, sell products, connect Pinterest, and more. 27 tools for the owned-audience creator platform.",
+  "main": "dist/index.js",
+  "bin": {
+    "doomscrollr-mcp": "dist/index.js",
+    "doomscrollr-mcp-http": "dist/http.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:http": "node dist/http.js",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "doomscrollr",
+    "ai-agents",
+    "creator-economy",
+    "owned-audience",
+    "content",
+    "newsletter",
+    "ecommerce"
+  ],
+  "author": "DOOMSCROLLR",
+  "license": "MIT",
+  "homepage": "https://doomscrollr.com/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aaayersss/doomscrollr.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/aaayersss/doomscrollr/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.7.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/node": "^20.0.0"
+  }
+}

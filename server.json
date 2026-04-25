@@ -1,0 +1,63 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.doomscrollr/mcp",
+  "title": "DOOMSCROLLR",
+  "description": "Build and operate an owned creator audience on DOOMSCROLLR \u2014 posts, products, subscribers, domains.",
+  "version": "1.0.3",
+  "repository": {
+    "url": "https://github.com/aaayersss/doomscrollr",
+    "source": "github",
+    "subfolder": "mcp"
+  },
+  "websiteUrl": "https://doomscrollr.com/mcp",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@doomscrollr/mcp-server",
+      "version": "1.0.3",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "DOOMSCROLLR_API_KEY",
+          "description": "Your DOOMSCROLLR API key. Get one free at https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "DOOMSCROLLR_API_BASE",
+          "description": "Optional API base URL override. Defaults to https://doomscrollr.com/api/v1.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://doomscrollr-mcp-947725b885f2.herokuapp.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer DOOMSCROLLR_API_KEY (get one at https://doomscrollr.com/dashboard)",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string",
+          "value": "Bearer {DOOMSCROLLR_API_KEY}"
+        }
+      ],
+      "variables": {
+        "DOOMSCROLLR_API_KEY": {
+          "description": "Your DOOMSCROLLR API key from https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      }
+    }
+  ]
+}
