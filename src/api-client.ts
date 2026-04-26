@@ -152,6 +152,14 @@ export class DoomscrollrClient {
     return this.request("PATCH", `/posts/${id}`, params);
   }
 
+  async bulkUpdatePosts(params: Record<string, unknown>) {
+    return this.request("PATCH", "/posts/bulk", params);
+  }
+
+  async bulkDeletePosts(ids: number[]) {
+    return this.request("DELETE", "/posts/bulk", { ids });
+  }
+
   // ── Audience ────────────────────────────────────────────────
   async listAudience(params?: { per_page?: number; page?: number; q?: string; tag?: string; bounced?: boolean }) {
     const qs = new URLSearchParams();
@@ -187,6 +195,14 @@ export class DoomscrollrClient {
 
   async removeSubscriber(id: number) {
     return this.request("DELETE", `/audience/${id}`);
+  }
+
+  async bulkUpdateSubscribers(params: Record<string, unknown>) {
+    return this.request("PATCH", "/audience/bulk", params);
+  }
+
+  async bulkDeleteSubscribers(ids: number[]) {
+    return this.request("DELETE", "/audience/bulk", { ids });
   }
 
   // ── Domain ──────────────────────────────────────────────────
@@ -285,6 +301,14 @@ export class DoomscrollrClient {
 
   async deleteProduct(id: number) {
     return this.request("DELETE", `/products/${id}`);
+  }
+
+  async bulkUpdateProducts(params: Record<string, unknown>) {
+    return this.request("PATCH", "/products/bulk", params);
+  }
+
+  async bulkDeleteProducts(ids: number[]) {
+    return this.request("DELETE", "/products/bulk", { ids });
   }
 
   // ── Capture ─────────────────────────────────────────────────

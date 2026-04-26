@@ -472,6 +472,91 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     removeSubscriberHandler
   );
 
+
+  server.tool(
+    "doomscrollr_bulk_update_posts",
+    "Bulk update up to 100 posts by id. Supports status/scheduling, feed flags, and tag replace/append/remove.",
+    {
+      ids: z.array(z.number()).min(1).max(100).describe("Post ids from doomscrollr_list_posts"),
+      title: z.string().optional().describe("Shared replacement title for all selected posts"),
+      description: z.string().optional().describe("Shared replacement description for all selected posts"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Set all selected posts to this status"),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule all selected posts"),
+      tags: z.string().optional().describe("Comma-separated tags"),
+      tag_mode: z.enum(["replace", "append", "remove"]).optional().describe("How to apply tags; default replace"),
+      hide_main_feed: z.boolean().optional().describe("Hide/show all selected posts on main feed"),
+      subscription_only: z.boolean().optional().describe("Make all selected posts subscriber-only or public"),
+    },
+    async (params) => {
+      const result = await client.bulkUpdatePosts(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_bulk_delete_posts",
+    "Bulk delete up to 100 posts by id. Irreversible; use doomscrollr_list_posts first.",
+    { ids: z.array(z.number()).min(1).max(100).describe("Post ids to delete") },
+    async ({ ids }) => {
+      const result = await client.bulkDeletePosts(ids);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_bulk_update_subscribers",
+    "Bulk update up to 500 audience members by id. Supports bounced/unsubscribed/spam flags and tag replace/append/remove.",
+    {
+      ids: z.array(z.number()).min(1).max(500).describe("Subscriber ids from doomscrollr_list_subscribers"),
+      tags: z.string().optional().describe("Comma-separated tags"),
+      tag_mode: z.enum(["replace", "append", "remove"]).optional().describe("How to apply tags; default replace"),
+      bounced: z.boolean().optional().describe("Set bounced flag"),
+      unsubscribed: z.boolean().optional().describe("Set unsubscribed flag"),
+      spam: z.boolean().optional().describe("Set spam flag"),
+    },
+    async (params) => {
+      const result = await client.bulkUpdateSubscribers(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_bulk_delete_subscribers",
+    "Bulk delete up to 500 audience members by id. Irreversible; use doomscrollr_list_subscribers first.",
+    { ids: z.array(z.number()).min(1).max(500).describe("Subscriber ids to delete") },
+    async ({ ids }) => {
+      const result = await client.bulkDeleteSubscribers(ids);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_bulk_update_products",
+    "Bulk update up to 100 products by id. Supports simple maintenance fields: price, inventory, shipping, and cover image.",
+    {
+      ids: z.array(z.number()).min(1).max(100).describe("Product ids from doomscrollr_list_products"),
+      price: z.number().min(0).optional().describe("Shared replacement price"),
+      inventory_count: z.number().int().min(0).optional().describe("Shared replacement inventory count"),
+      shipping_required: z.boolean().optional().describe("Set shipping required"),
+      shipping_cost: z.number().min(0).optional().describe("Shared replacement shipping cost"),
+      cover_photo_url: z.string().url().optional().describe("Shared replacement cover image URL"),
+    },
+    async (params) => {
+      const result = await client.bulkUpdateProducts(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_bulk_delete_products",
+    "Bulk delete up to 100 products by id. Irreversible; linked posts are preserved but unlinked from deleted products.",
+    { ids: z.array(z.number()).min(1).max(100).describe("Product ids to delete") },
+    async ({ ids }) => {
+      const result = await client.bulkDeleteProducts(ids);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
   server.tool(
     "doomscrollr_get_settings",
     "Get full DOOMSCROLLR settings — SEO, analytics, layout, popup, CTA bar, buy button, draft mode, and images.",
