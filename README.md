@@ -145,3 +145,8 @@ npx @modelcontextprotocol/inspector node dist/index.js
 ## License
 
 MIT
+
+
+## ChatGPT App readiness
+
+Version 1.0.9 adds MCP tool annotations (`readOnlyHint`, `destructiveHint`, and `openWorldHint`) so ChatGPT Apps / connector review can distinguish read-only, write, public, and destructive actions.

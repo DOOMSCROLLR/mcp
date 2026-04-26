@@ -7,8 +7,82 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.6",
+    version: "1.0.9",
   });
+
+  const toolAnnotationsFor = (name: string) => {
+    const readOnlyPrefixes = [
+      "doomscrollr_get_",
+      "doomscrollr_list_",
+      "doomscrollr_show_",
+      "doomscrollr_search_",
+      "doomscrollr_export_",
+    ];
+    const readOnlyNames = new Set([
+      "doomscrollr_domain_status",
+      "doomscrollr_pinterest_status",
+      "doomscrollr_rss_status",
+    ]);
+    const destructivePrefixes = [
+      "doomscrollr_delete_",
+      "doomscrollr_remove_",
+      "doomscrollr_disconnect_",
+      "doomscrollr_bulk_delete_",
+    ];
+    const openWorldPrefixes = [
+      "doomscrollr_create_",
+      "doomscrollr_publish_",
+      "doomscrollr_add_",
+      "doomscrollr_update_",
+      "doomscrollr_set_",
+      "doomscrollr_connect_",
+      "doomscrollr_disconnect_",
+      "doomscrollr_delete_",
+      "doomscrollr_remove_",
+      "doomscrollr_bulk_",
+    ];
+
+    const readOnly = readOnlyPrefixes.some((prefix) => name.startsWith(prefix)) || readOnlyNames.has(name);
+    const destructive = destructivePrefixes.some((prefix) => name.startsWith(prefix));
+    const openWorld = !readOnly || name === "doomscrollr_search_domains";
+
+    return {
+      readOnlyHint: readOnly,
+      destructiveHint: destructive,
+      openWorldHint: openWorld,
+    };
+  };
+
+  const rawTool = server.tool.bind(server) as (...args: any[]) => unknown;
+  (server as unknown as { tool: (...args: any[]) => unknown }).tool = (name: unknown, ...args: any[]) => {
+    if (typeof name !== "string") {
+      return rawTool(name, ...args);
+    }
+
+    const maybeHandler = args[args.length - 1];
+    if (typeof maybeHandler !== "function") {
+      return rawTool(name, ...args);
+    }
+
+    const annotations = toolAnnotationsFor(name);
+
+    if (args.length === 1) {
+      return rawTool(name, annotations, maybeHandler);
+    }
+
+    if (args.length === 2) {
+      if (typeof args[0] === "string") {
+        return rawTool(name, args[0], annotations, maybeHandler);
+      }
+      return rawTool(name, args[0], annotations, maybeHandler);
+    }
+
+    if (args.length === 3 && typeof args[0] === "string") {
+      return rawTool(name, args[0], args[1], annotations, maybeHandler);
+    }
+
+    return rawTool(name, ...args);
+  };
 
   // ═══════════════════════════════════════════════════════════
   // TOOLS
