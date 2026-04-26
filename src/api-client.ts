@@ -46,6 +46,35 @@ export class DoomscrollrClient {
     return data as T;
   }
 
+  private async textRequest(
+    method: string,
+    path: string,
+    body?: Record<string, unknown>
+  ): Promise<string> {
+    const url = `${this.baseUrl}${path}`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "text/csv, text/plain, application/json",
+    };
+    if (this.apiKey) {
+      headers["Authorization"] = `Bearer ${this.apiKey}`;
+    }
+
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+
+    return text;
+  }
+
   // ── Registration (no auth) ──────────────────────────────────
   async register(params: {
     email: string;
@@ -95,6 +124,7 @@ export class DoomscrollrClient {
     description?: string;
     tags?: string;
     status?: string;
+    publish_at?: string;
   }) {
     return this.request("POST", "/posts", params);
   }
@@ -105,6 +135,7 @@ export class DoomscrollrClient {
     description?: string;
     tags?: string;
     status?: string;
+    publish_at?: string;
   }) {
     return this.request("POST", "/posts/image", params);
   }
@@ -122,14 +153,24 @@ export class DoomscrollrClient {
   }
 
   // ── Audience ────────────────────────────────────────────────
-  async listAudience(params?: { per_page?: number; page?: number; q?: string; tag?: string }) {
+  async listAudience(params?: { per_page?: number; page?: number; q?: string; tag?: string; bounced?: boolean }) {
     const qs = new URLSearchParams();
     if (params?.per_page) qs.set("per_page", String(params.per_page));
     if (params?.page) qs.set("page", String(params.page));
     if (params?.q) qs.set("q", params.q);
     if (params?.tag) qs.set("tag", params.tag);
+    if (typeof params?.bounced === "boolean") qs.set("bounced", String(params.bounced));
     const query = qs.toString() ? `?${qs}` : "";
     return this.request("GET", `/audience${query}`);
+  }
+
+  async exportAudience(params?: { q?: string; tag?: string; bounced?: boolean }) {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set("q", params.q);
+    if (params?.tag) qs.set("tag", params.tag);
+    if (typeof params?.bounced === "boolean") qs.set("bounced", String(params.bounced));
+    const query = qs.toString() ? `?${qs}` : "";
+    return this.textRequest("GET", `/audience/export${query}`);
   }
 
   async addSubscriber(params: Record<string, unknown>) {
@@ -165,6 +206,18 @@ export class DoomscrollrClient {
     return this.request("GET", "/domain/status");
   }
 
+  async disconnectDomain(domain: string) {
+    return this.request("DELETE", `/domain/${encodeURIComponent(domain)}`);
+  }
+
+  async getCurationTheme() {
+    return this.request("GET", "/curation-theme");
+  }
+
+  async updateCurationTheme(theme: string | null) {
+    return this.request("PUT", "/curation-theme", { theme });
+  }
+
   async connectPinterest(boardUrl: string) {
     return this.request("POST", "/integrations/pinterest/connect", { board_url: boardUrl });
   }
@@ -181,8 +234,16 @@ export class DoomscrollrClient {
     return this.request("POST", "/integrations/instagram", {});
   }
 
-  async connectRss(feedUrl?: string) {
-    return this.request("POST", "/integrations/rss", feedUrl ? { feed_url: feedUrl } : {});
+  async connectRss(feedUrl: string) {
+    return this.request("POST", "/integrations/rss", { feed_url: feedUrl });
+  }
+
+  async rssStatus() {
+    return this.request("GET", "/integrations/rss/status");
+  }
+
+  async disconnectRss(integrationId?: number) {
+    return this.request("DELETE", "/integrations/rss", integrationId ? { integration_id: integrationId } : {});
   }
 
   // ── Embed ───────────────────────────────────────────────────
@@ -191,12 +252,14 @@ export class DoomscrollrClient {
   }
 
   // ── Products ────────────────────────────────────────────────
-  async listProducts(params?: { per_page?: number; page?: number; q?: string; type?: string }) {
+  async listProducts(params?: { per_page?: number; page?: number; q?: string; type?: string; min_price?: number; max_price?: number }) {
     const qs = new URLSearchParams();
     if (params?.per_page) qs.set("per_page", String(params.per_page));
     if (params?.page) qs.set("page", String(params.page));
     if (params?.q) qs.set("q", params.q);
     if (params?.type) qs.set("type", params.type);
+    if (typeof params?.min_price === "number") qs.set("min_price", String(params.min_price));
+    if (typeof params?.max_price === "number") qs.set("max_price", String(params.max_price));
     const query = qs.toString() ? `?${qs}` : "";
     return this.request("GET", `/products${query}`);
   }

@@ -7,7 +7,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.5",
+    version: "1.0.6",
   });
 
   // ═══════════════════════════════════════════════════════════
@@ -47,7 +47,8 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       title: z.string().optional().describe("Post title"),
       description: z.string().optional().describe("Post description"),
       tags: z.string().optional().describe("Comma-separated tags"),
-      status: z.enum(["published", "draft"]).optional().describe("Post status (default: published)"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
     },
     async (params) => {
       const result = await client.createLinkPost(params);
@@ -63,7 +64,8 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       title: z.string().optional().describe("Post title"),
       description: z.string().optional().describe("Post description"),
       tags: z.string().optional().describe("Comma-separated tags"),
-      status: z.enum(["published", "draft"]).optional().describe("Post status (default: published)"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
     },
     async (params) => {
       const result = await client.createImagePost(params);
@@ -78,7 +80,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       per_page: z.number().min(1).max(50).optional().describe("Posts per page (max 50)"),
       page: z.number().min(1).optional().describe("Page number"),
       q: z.string().optional().describe("Search title, description, or URL"),
-      status: z.enum(["published", "draft"]).optional().describe("Filter by post status"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Filter by post status"),
       tag: z.string().optional().describe("Filter by exact tag name"),
     },
     async (params) => {
@@ -140,10 +142,25 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       page: z.number().min(1).optional().describe("Page number"),
       q: z.string().optional().describe("Search by email, name, username, or phone"),
       tag: z.string().optional().describe("Filter by exact tag name"),
+      bounced: z.boolean().optional().describe("Filter by bounced email status"),
     },
     async (params) => {
       const result = await client.listAudience(params);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_export_audience_csv",
+    "Export audience members as CSV text. Supports the same search/tag/bounced filters as doomscrollr_list_subscribers.",
+    {
+      q: z.string().optional().describe("Search by email, name, username, or phone"),
+      tag: z.string().optional().describe("Filter by exact tag name"),
+      bounced: z.boolean().optional().describe("Filter by bounced email status"),
+    },
+    async (params) => {
+      const result = await client.exportAudience(params);
+      return { content: [{ type: "text", text: result }] };
     }
   );
 
@@ -194,6 +211,40 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   );
 
   server.tool(
+    "doomscrollr_disconnect_domain",
+    "Disconnect a custom domain from this DOOMSCROLLR without deleting any purchased domain registration.",
+    {
+      domain: z.string().min(1).describe("Full domain to disconnect, e.g. mybrand.com"),
+    },
+    async ({ domain }) => {
+      const result = await client.disconnectDomain(domain);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_get_curation_theme",
+    "Get the AI curation theme used for imported content decisions, especially native Pinterest/RSS-style feeds.",
+    {},
+    async () => {
+      const result = await client.getCurationTheme();
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_set_curation_theme",
+    "Set the AI curation theme used for imported content decisions. Pass null/empty text to clear it.",
+    {
+      theme: z.string().max(5000).nullable().describe("Theme description, e.g. 'Cute English Cocker Spaniel photos; drop text-only images and ads.'"),
+    },
+    async ({ theme }) => {
+      const result = await client.updateCurationTheme(theme);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
     "doomscrollr_connect_pinterest",
     "Auto-post a public Pinterest board to this DOOMSCROLLR. Pass the board URL (like 'https://www.pinterest.com/user/my-board/'). Pins get imported within 15 minutes and new pins auto-post going forward. No OAuth or API keys needed — just needs the board to be public.",
     {
@@ -239,12 +290,34 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_connect_rss",
-    "Set up auto-posting from any RSS feed to DOOMSCROLLR. Works with Substack, Medium, WordPress, YouTube channels, podcast feeds, or any RSS source. Returns Zapier setup instructions.",
+    "Connect native RSS polling. Works with Substack, Medium, WordPress, YouTube channels, podcast feeds, or any public RSS/Atom source. New items auto-post within about 15 minutes — no Zapier required.",
     {
-      feed_url: z.string().url().optional().describe("RSS feed URL"),
+      feed_url: z.string().url().max(500).describe("RSS or Atom feed URL"),
     },
     async ({ feed_url }) => {
       const result = await client.connectRss(feed_url);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_rss_status",
+    "Check status of native RSS integrations — last poll time, latest item, total posts created, and errors.",
+    {},
+    async () => {
+      const result = await client.rssStatus();
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_disconnect_rss",
+    "Disconnect native RSS integration(s). Pass integration_id to disconnect a specific feed, or omit to disconnect all RSS feeds.",
+    {
+      integration_id: z.number().optional().describe("Specific RSS integration id from doomscrollr_rss_status"),
+    },
+    async ({ integration_id }) => {
+      const result = await client.disconnectRss(integration_id);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -294,6 +367,11 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     "List products on your DOOMSCROLLR.",
     {
       per_page: z.number().min(1).max(50).optional().describe("Results per page"),
+      page: z.number().min(1).optional().describe("Page number"),
+      q: z.string().optional().describe("Search title, description, or SKU"),
+      type: z.enum(["physical", "digital", "ticket", "subscription"]).optional().describe("Filter by product type"),
+      min_price: z.number().min(0).optional().describe("Minimum price filter in dollars; includes matching variant prices"),
+      max_price: z.number().min(0).optional().describe("Maximum price filter in dollars; includes matching variant prices"),
     },
     async (params) => {
       const result = await client.listProducts(params);
@@ -335,7 +413,8 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       id: z.number().describe("Post id. Get this from doomscrollr_list_posts."),
       title: z.string().optional().describe("New post title."),
       description: z.string().optional().describe("New post description / body text."),
-      status: z.enum(["published", "draft"]).optional().describe("Set to 'published' to make the post visible on the DOOMSCROLLR feed, or 'draft' to hide it without deleting."),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Set to published, draft, or scheduled."),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication."),
       tags: z.string().optional().describe("Comma-separated tags, e.g. 'sneakers,hype,summer'. Replaces existing tags."),
     },
     async ({ id, ...params }) => {
