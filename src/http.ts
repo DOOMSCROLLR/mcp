@@ -10,7 +10,7 @@ import { renderLandingPage, LLMS_TXT, DISCOVERY_JSON } from "./landing.js";
 
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
-const baseUrl = process.env.DOOMSCROLLR_API_URL || "https://doomscrollr.com/api/v1";
+const baseUrl = process.env.DOOMSCROLLR_API_BASE || process.env.DOOMSCROLLR_API_URL || "https://doomscrollr.com/api/v1";
 const allowedOrigins = (process.env.MCP_ALLOWED_ORIGINS || "*")
   .split(",")
   .map((value) => value.trim())

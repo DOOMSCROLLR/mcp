@@ -4,7 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { createServer } from "./server.js";
 
 const apiKey = process.env.DOOMSCROLLR_API_KEY || "";
-const baseUrl = process.env.DOOMSCROLLR_API_URL || "https://doomscrollr.com/api/v1";
+const baseUrl = process.env.DOOMSCROLLR_API_BASE || process.env.DOOMSCROLLR_API_URL || "https://doomscrollr.com/api/v1";
 
 if (!apiKey) {
   console.error(
