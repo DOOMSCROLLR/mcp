@@ -179,6 +179,20 @@ export function registerOAuthClient(req: Request, res: Response) {
 }
 
 export function renderAuthorizePage(req: Request, res: Response) {
+  const responseType = getParam(req, "response_type");
+  const clientId = getParam(req, "client_id");
+  const redirectUri = getParam(req, "redirect_uri");
+
+  if (responseType !== "code" || !clientId || !redirectUri) {
+    return res
+      .status(400)
+      .set("Content-Type", "text/html; charset=utf-8")
+      .send(renderMessagePage(
+        "Missing OAuth parameters",
+        "Restart authorization from the OpenAI Apps MCP Server screen. This page needs response_type, client_id, redirect_uri, state, and PKCE parameters from OpenAI."
+      ));
+  }
+
   const params = ["response_type", "client_id", "redirect_uri", "scope", "state", "code_challenge", "code_challenge_method", "resource"];
   const hidden = params
     .map((key) => `<input type="hidden" name="${key}" value="${htmlEscape(getParam(req, key))}">`)
@@ -208,7 +222,7 @@ export function renderAuthorizePage(req: Request, res: Response) {
   <main>
     <h1>Authorize DOOMSCROLLR MCP</h1>
     <p>Paste a limited/test DOOMSCROLLR API key to let this client call the MCP server on your behalf. The key is exchanged for an OAuth access token.</p>
-    <form method="post" action="/oauth/authorize">
+    <form method="post" action="/oauth/authorize" autocomplete="off">
       ${hidden}
       <label for="api_key">DOOMSCROLLR API key</label>
       <input id="api_key" name="api_key" type="password" autocomplete="off" required autofocus>
@@ -218,6 +232,24 @@ export function renderAuthorizePage(req: Request, res: Response) {
   </main>
 </body>
 </html>`);
+}
+
+function renderMessagePage(title: string, message: string): string {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${htmlEscape(title)}</title>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#0662FF; color:#000; margin:0; min-height:100vh; display:grid; place-items:center; }
+    main { width:min(560px, calc(100vw - 32px)); background:#fff; border:2px solid #000; box-shadow:4px 4px 0 #000; padding:28px; }
+    h1 { font-size:28px; margin:0 0 12px; }
+    p { line-height:1.5; }
+  </style>
+</head>
+<body><main><h1>${htmlEscape(title)}</h1><p>${htmlEscape(message)}</p></main></body>
+</html>`;
 }
 
 export async function completeAuthorize(req: Request, res: Response, baseUrl: string) {
