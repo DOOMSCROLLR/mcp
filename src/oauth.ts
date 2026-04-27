@@ -222,7 +222,7 @@ export function renderAuthorizePage(req: Request, res: Response) {
   <main>
     <h1>Authorize DOOMSCROLLR MCP</h1>
     <p>Paste a limited/test DOOMSCROLLR API key to let this client call the MCP server on your behalf. The key is exchanged for an OAuth access token.</p>
-    <form method="post" action="/oauth/authorize" autocomplete="off">
+    <form method="post" action="/oauth/authorize" autocomplete="off" target="_top">
       ${hidden}
       <label for="api_key">DOOMSCROLLR API key</label>
       <input id="api_key" name="api_key" type="password" autocomplete="off" required autofocus>
