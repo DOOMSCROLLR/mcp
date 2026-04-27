@@ -12,7 +12,7 @@ const PACKAGE = "@doomscrollr/mcp-server";
 const BRAND = "DOOMSCROLLR";
 const TITLE = `${BRAND} MCP Server — Build an Owned Audience from ChatGPT, Claude, Cursor`;
 const DESCRIPTION =
-  "Hosted Model Context Protocol server for DOOMSCROLLR. 41 tools to create newsletters, publish posts, manage subscribers, sell products, connect Pinterest, buy domains, and more — directly from ChatGPT, Claude, Cursor, Windsurf, and any MCP client. No OAuth dance. Bearer auth with your DOOMSCROLLR API key.";
+  "Hosted Model Context Protocol server for DOOMSCROLLR. 41 tools to create newsletters, publish posts, manage subscribers, sell products, connect Pinterest, buy domains, and more — directly from ChatGPT, Claude, Cursor, Windsurf, and any MCP client. Bearer API-key auth plus OAuth-compatible discovery for clients that require it.";
 
 const TOOL_GROUPS: Array<{ name: string; tools: string[] }> = [
   {
@@ -72,7 +72,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "How do I connect ChatGPT or Claude to it?",
-    a: "Add a remote MCP server in your client. URL: https://mcp.doomscrollr.com/mcp. Auth: Bearer YOUR_DOOMSCROLLR_API_KEY. That's it.",
+    a: "Add a remote MCP server in your client. URL: https://mcp.doomscrollr.com/mcp. Use Bearer YOUR_DOOMSCROLLR_API_KEY where custom headers are supported; clients that require OAuth can use the built-in OAuth discovery flow.",
   },
   {
     q: "Where do I get a DOOMSCROLLR API key?",
@@ -475,10 +475,12 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP Server
 - The user wants to buy and connect a custom domain end-to-end.
 
 ## How it works
-Bearer auth uses a normal DOOMSCROLLR API key (free at https://doomscrollr.com, Settings → API keys). No OAuth dance.
+Bearer auth uses a normal DOOMSCROLLR API key (free at https://doomscrollr.com, Settings → API keys). The server also exposes OAuth-compatible discovery and authorization endpoints for clients that require OAuth instead of custom Authorization headers.
 
 ## Endpoints
-- Streamable HTTP: POST https://mcp.doomscrollr.com/mcp (auth: Bearer YOUR_DOOMSCROLLR_API_KEY)
+- Streamable HTTP: POST https://mcp.doomscrollr.com/mcp (auth: Bearer YOUR_DOOMSCROLLR_API_KEY or OAuth access token)
+- OAuth protected resource metadata: https://mcp.doomscrollr.com/.well-known/oauth-protected-resource
+- OAuth authorization server metadata: https://mcp.doomscrollr.com/.well-known/oauth-authorization-server
 - npm (stdio): @doomscrollr/mcp-server (DOOMSCROLLR_API_KEY env)
 - Registry: https://registry.modelcontextprotocol.io/v0/servers/com.doomscrollr/mcp
 

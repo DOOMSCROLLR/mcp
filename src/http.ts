@@ -1,12 +1,22 @@
 #!/usr/bin/env node
 
 import cors from "cors";
+import express from "express";
 import { randomUUID } from "node:crypto";
 import type { Response } from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { createServer } from "./server.js";
 import { renderLandingPage, LLMS_TXT, DISCOVERY_JSON } from "./landing.js";
+import {
+  authorizationServerMetadata,
+  completeAuthorize,
+  exchangeToken,
+  protectedResourceMetadata,
+  registerOAuthClient,
+  renderAuthorizePage,
+  resolveDoomscrollrApiKeyFromBearer,
+} from "./oauth.js";
 
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
@@ -29,7 +39,7 @@ function extractBearerToken(authHeader?: string): string | null {
 }
 
 function unauthorized(res: Response) {
-  res.setHeader("WWW-Authenticate", 'Bearer realm="DOOMSCROLLR MCP", error="invalid_token", error_description="Provide Authorization: Bearer <DOOMSCROLLR_API_KEY>"');
+  res.setHeader("WWW-Authenticate", 'Bearer realm="DOOMSCROLLR MCP", resource_metadata="https://mcp.doomscrollr.com/.well-known/oauth-protected-resource", error="invalid_token", error_description="Provide Authorization: Bearer <DOOMSCROLLR_API_KEY> or an OAuth access token"');
   return res.status(401).json({
     jsonrpc: "2.0",
     error: {
@@ -77,6 +87,35 @@ app.get("/.well-known/mcp", (_req, res) => {
   res.json(DISCOVERY_JSON);
 });
 
+app.get(["/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp"], (req, res) => {
+  res.json(protectedResourceMetadata(req));
+});
+
+app.get("/.well-known/oauth-authorization-server", (req, res) => {
+  res.json(authorizationServerMetadata(req));
+});
+
+app.post("/oauth/register", (req, res) => {
+  registerOAuthClient(req, res);
+});
+
+app.get("/oauth/authorize", (req, res) => {
+  renderAuthorizePage(req, res);
+});
+
+app.post("/oauth/authorize", express.urlencoded({ extended: false }), (req, res) => {
+  completeAuthorize(req, res, baseUrl).catch((error) => {
+    console.error("OAuth authorize error:", error);
+    if (!res.headersSent) {
+      res.status(500).send("OAuth authorization failed.");
+    }
+  });
+});
+
+app.post("/oauth/token", express.urlencoded({ extended: false }), (req, res) => {
+  exchangeToken(req, res);
+});
+
 app.get("/llms.txt", (_req, res) => {
   res.set("Content-Type", "text/plain; charset=utf-8").send(LLMS_TXT);
 });
@@ -108,7 +147,8 @@ app.delete("/mcp", (_req, res) => {
 });
 
 app.post("/mcp", async (req, res) => {
-  const apiKey = extractBearerToken(req.header("authorization"));
+  const bearerToken = extractBearerToken(req.header("authorization"));
+  const apiKey = bearerToken ? resolveDoomscrollrApiKeyFromBearer(bearerToken) : null;
 
   if (!apiKey) {
     return unauthorized(res);

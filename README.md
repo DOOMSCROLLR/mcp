@@ -92,7 +92,7 @@ POST https://mcp.doomscrollr.com/mcp
 Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY
 ```
 
-The bearer token is your normal DOOMSCROLLR API key from the dashboard. No OAuth setup, no extra signup.
+The bearer token is your normal DOOMSCROLLR API key from the dashboard. The hosted server also exposes OAuth-compatible discovery and authorization endpoints for clients that require OAuth instead of custom Authorization headers.
 
 ### Run the remote server locally
 
