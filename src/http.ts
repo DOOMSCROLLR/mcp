@@ -91,7 +91,7 @@ app.get(["/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-
   res.json(protectedResourceMetadata(req));
 });
 
-app.get("/.well-known/oauth-authorization-server", (req, res) => {
+app.get(["/.well-known/oauth-authorization-server", "/.well-known/openid-configuration"], (req, res) => {
   res.json(authorizationServerMetadata(req));
 });
 
