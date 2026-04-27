@@ -234,6 +234,42 @@ export function renderAuthorizePage(req: Request, res: Response) {
 </html>`);
 }
 
+function renderRedirectPage(targetUrl: string): string {
+  const safeUrl = JSON.stringify(targetUrl);
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0;url=${htmlEscape(targetUrl)}">
+  <title>Returning to OpenAI</title>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#0662FF; color:#000; margin:0; min-height:100vh; display:grid; place-items:center; }
+    main { width:min(560px, calc(100vw - 32px)); background:#fff; border:2px solid #000; box-shadow:4px 4px 0 #000; padding:28px; }
+    a { color:#000; font-weight:900; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Returning to OpenAI…</h1>
+    <p>If this does not continue automatically, <a id="continue" href="${htmlEscape(targetUrl)}" target="_top" rel="noreferrer">click here to continue</a>.</p>
+  </main>
+  <script>
+    (function () {
+      var target = ${safeUrl};
+      try {
+        if (window.top) {
+          window.top.location.replace(target);
+          return;
+        }
+      } catch (e) {}
+      window.location.replace(target);
+    })();
+  </script>
+</body>
+</html>`;
+}
+
 function renderMessagePage(title: string, message: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -284,7 +320,10 @@ export async function completeAuthorize(req: Request, res: Response, baseUrl: st
   redirect.searchParams.set("code", code);
   if (state) redirect.searchParams.set("state", state);
 
-  return res.redirect(302, redirect.toString());
+  return res
+    .status(200)
+    .set("Content-Type", "text/html; charset=utf-8")
+    .send(renderRedirectPage(redirect.toString()));
 }
 
 export function exchangeToken(req: Request, res: Response) {
