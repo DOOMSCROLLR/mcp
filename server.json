@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
-  "description": "Build owned-audience websites from AI agents: posts, products, subscribers, domains, affiliate storefronts, tickets, and replacement flows.",
+  "description": "AI agents build owned-audience websites: posts, products, subscribers, domains, tickets.",
   "version": "1.0.10",
   "repository": {
     "url": "https://github.com/aaayersss/doomscrollr-mcp",
