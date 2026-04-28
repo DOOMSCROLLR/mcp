@@ -234,6 +234,17 @@ export class DoomscrollrClient {
     return this.request("PUT", "/curation-theme", { theme });
   }
 
+  async searchPinterest(params: { query: string; limit?: number }) {
+    const qs = new URLSearchParams();
+    qs.set("query", params.query);
+    if (params.limit) qs.set("limit", String(params.limit));
+    return this.request("GET", `/integrations/pinterest/search?${qs}`);
+  }
+
+  async searchPinterestAndPost(params: { query: string; limit?: number; status?: string; publish_at?: string; tags?: string }) {
+    return this.request("POST", "/integrations/pinterest/search-post", params);
+  }
+
   async connectPinterest(boardUrl: string) {
     return this.request("POST", "/integrations/pinterest/connect", { board_url: boardUrl });
   }
@@ -265,6 +276,22 @@ export class DoomscrollrClient {
   // ── Embed ───────────────────────────────────────────────────
   async getEmbedCode() {
     return this.request("GET", "/embed");
+  }
+
+  async topLikedPosts(params?: { limit?: number; days?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.days) qs.set("days", String(params.days));
+    const query = qs.toString() ? `?${qs}` : "";
+    return this.request("GET", `/analytics/top-liked-posts${query}`);
+  }
+
+  async createPage(params: { title: string; content: string; add_to_navigation?: boolean; navigation_label?: string }) {
+    return this.request("POST", "/pages", params);
+  }
+
+  async createContactPage(params: { title?: string; intro?: string; links: Array<{ label: string; url: string }>; add_to_navigation?: boolean; navigation_label?: string }) {
+    return this.request("POST", "/pages/contact", params);
   }
 
   // ── Products ────────────────────────────────────────────────

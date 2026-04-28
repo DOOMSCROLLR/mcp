@@ -22,6 +22,12 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       "doomscrollr_domain_status",
       "doomscrollr_pinterest_status",
       "doomscrollr_rss_status",
+      "doomscrollr_top_liked_posts",
+    ]);
+    const writeNames = new Set([
+      "doomscrollr_search_pinterest_and_post",
+      "doomscrollr_apply_style_preset",
+      "doomscrollr_create_contact_page",
     ]);
     const destructivePrefixes = [
       "doomscrollr_delete_",
@@ -42,7 +48,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       "doomscrollr_bulk_",
     ];
 
-    const readOnly = readOnlyPrefixes.some((prefix) => name.startsWith(prefix)) || readOnlyNames.has(name);
+    const readOnly = !writeNames.has(name) && (readOnlyPrefixes.some((prefix) => name.startsWith(prefix)) || readOnlyNames.has(name));
     const destructive = destructivePrefixes.some((prefix) => name.startsWith(prefix));
     const openWorld = !readOnly || name === "doomscrollr_search_domains";
 
@@ -319,6 +325,35 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   );
 
   server.tool(
+    "doomscrollr_search_pinterest",
+    "Search public Pinterest pins by keyword without connecting a board. Use this to discover visual content ideas before posting anything.",
+    {
+      query: z.string().min(1).max(255).describe("Pinterest search query, e.g. 'air cooled Porsche'"),
+      limit: z.number().int().min(1).max(25).optional().describe("Maximum pins to return"),
+    },
+    async (params) => {
+      const result = await client.searchPinterest(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_search_pinterest_and_post",
+    "Search public Pinterest for visual content and create image posts from the best results. Use this for prompts like 'Search Pinterest for Air Cooled Porsche content and post it to my DOOMSCROLLR.' Prefer status='draft' when the user has not explicitly approved immediate publishing.",
+    {
+      query: z.string().min(1).max(255).describe("Pinterest search query, e.g. 'air cooled Porsche'"),
+      limit: z.number().int().min(1).max(10).optional().describe("Number of Pinterest results to turn into DOOMSCROLLR posts"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status. Use draft unless the user clearly asked to publish now."),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
+      tags: z.string().optional().describe("Comma-separated tags, e.g. 'porsche,cars,air-cooled'"),
+    },
+    async (params) => {
+      const result = await client.searchPinterestAndPost(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
     "doomscrollr_connect_pinterest",
     "Auto-post a public Pinterest board to this DOOMSCROLLR. Pass the board URL (like 'https://www.pinterest.com/user/my-board/'). Pins get imported within 15 minutes and new pins auto-post going forward. No OAuth or API keys needed — just needs the board to be public.",
     {
@@ -407,6 +442,113 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   );
 
   server.tool(
+    "doomscrollr_top_liked_posts",
+    "Show which posts are getting the most likes over a recent time window. Use this for prompts like 'Tell me which posts are getting the most likes.'",
+    {
+      limit: z.number().int().min(1).max(50).optional().describe("How many top posts to return"),
+      days: z.number().int().min(1).max(3650).optional().describe("Lookback window in days; default 30"),
+    },
+    async (params) => {
+      const result = await client.topLikedPosts(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_create_page",
+    "Create or update a standalone DOOMSCROLLR page and optionally add it to navigation.",
+    {
+      title: z.string().min(1).max(255).describe("Page title"),
+      content: z.string().min(1).max(50000).describe("Page body as simple HTML or plain text"),
+      add_to_navigation: z.boolean().optional().describe("Whether to add/update a nav link for this page"),
+      navigation_label: z.string().max(255).optional().describe("Navigation label; defaults to title"),
+    },
+    async (params) => {
+      const result = await client.createPage(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_create_contact_page",
+    "Create a LinkTree-style contact/links page and link to it in navigation. Use this for prompts like 'Create a LinkTree like Contact page and link to it in my navigation.'",
+    {
+      title: z.string().max(255).optional().describe("Page title, default Contact"),
+      intro: z.string().max(1000).optional().describe("Short intro text"),
+      links: z.array(z.object({
+        label: z.string().describe("Visible link label"),
+        url: z.string().describe("Destination URL, e.g. https://instagram.com/brand or mailto:hello@example.com"),
+      })).min(1).max(25).describe("Links to place on the contact page"),
+      add_to_navigation: z.boolean().optional().describe("Defaults true"),
+      navigation_label: z.string().max(255).optional().describe("Navigation label, default Contact"),
+    },
+    async (params) => {
+      const result = await client.createContactPage(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_apply_style_preset",
+    "Apply a recognizable visual direction to DOOMSCROLLR settings. Use this for prompts like 'Update the styling of my DOOMSCROLLR to look like Skims.' Currently supports skims, brutalist, editorial, and minimal presets using existing editable settings.",
+    {
+      preset: z.enum(["skims", "brutalist", "editorial", "minimal"]).describe("Style direction to apply"),
+      cta_bar_text: z.string().max(500).optional().describe("Optional CTA bar text"),
+      cta_bar_url: z.string().url().optional().describe("Optional CTA destination"),
+    },
+    async ({ preset, cta_bar_text, cta_bar_url }) => {
+      const presets: Record<string, Record<string, unknown>> = {
+        skims: {
+          user_theme: "light",
+          desktop_grid: 3,
+          mobile_grid: 2,
+          text_alignment: "center",
+          post_spacing: 36,
+          buy_button_max_width: 520,
+          buy_button_position: "below",
+          buy_button_mode: "smart",
+          buy_button_background_color: "#111111",
+          buy_button_text_color: "#F6F1EA",
+          buy_button_outline_color: "#111111",
+        },
+        brutalist: {
+          user_theme: "light",
+          desktop_grid: 2,
+          mobile_grid: 1,
+          text_alignment: "left",
+          post_spacing: 18,
+          buy_button_background_color: "#000000",
+          buy_button_text_color: "#FFFFFF",
+          buy_button_outline_color: "#000000",
+        },
+        editorial: {
+          user_theme: "light",
+          desktop_grid: 1,
+          mobile_grid: 1,
+          text_alignment: "left",
+          post_spacing: 72,
+          buy_button_position: "below",
+          buy_button_mode: "smart",
+        },
+        minimal: {
+          user_theme: "light",
+          desktop_grid: 2,
+          mobile_grid: 1,
+          text_alignment: "center",
+          post_spacing: 48,
+          buy_button_mode: "smart",
+        },
+      };
+
+      const params = { ...presets[preset] };
+      if (cta_bar_text) params.cta_bar_text = cta_bar_text;
+      if (cta_bar_url) params.cta_bar_url = cta_bar_url;
+      const result = await client.updateSettings(params);
+      return { content: [{ type: "text", text: JSON.stringify({ preset, updated_settings: result }, null, 2) }] };
+    }
+  );
+
+  server.tool(
     "doomscrollr_create_product",
     "Create a product for sale on your DOOMSCROLLR — physical goods, digital downloads, event tickets, or subscriptions.",
     {
@@ -414,7 +556,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       description: z.string().optional().describe("Product description"),
       price: z.number().min(0).describe("Price in dollars (e.g., 29.99)"),
       type: z.enum(["physical", "digital", "ticket", "subscription"]).describe("Product type"),
-      cover_photo_url: z.string().url().optional().describe("Cover image URL"),
+      cover_photo_url: z.string().url().optional().describe("Cover image/photo URL supplied by the user or ChatGPT, e.g. for 'Create a $50 product from this photo and name it Tie Dye Pants'"),
       url: z.string().url().optional().describe("External URL (for digital products)"),
       inventory_count: z.number().int().min(0).optional().describe("Stock quantity for non-variant physical products"),
       shipping_required: z.boolean().optional().describe("Whether shipping is required; physical products usually true"),
