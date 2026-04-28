@@ -13,6 +13,12 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   registerWidgetResources(server);
 
+  const toolTitleFor = (name: string) => name
+    .replace(/^doomscrollr_/, "")
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
   const toolAnnotationsFor = (name: string) => {
     const readOnlyPrefixes = [
       "doomscrollr_get_",
@@ -56,6 +62,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     const openWorld = !readOnly || name === "doomscrollr_search_domains";
 
     return {
+      title: toolTitleFor(name),
       readOnlyHint: readOnly,
       destructiveHint: destructive,
       openWorldHint: openWorld,
