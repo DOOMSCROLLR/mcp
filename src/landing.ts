@@ -390,8 +390,9 @@ ${jsonLd()}
     <a href="#quickstart">Quickstart</a>
     <a href="#prompts">Prompts</a>
     <a href="#tools">Tools</a>
-    <a href="https://doomscrollr.com/docs/claude.md">Claude</a>
-    <a href="https://doomscrollr.com">DOOMSCROLLR</a>
+    <a href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=featured">Featured</a>
+    <a href="https://doomscrollr.com/docs/claude.md?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=claude_docs">Claude</a>
+    <a href="https://doomscrollr.com?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=homepage">DOOMSCROLLR</a>
   </nav>
 </header>
 <main>
@@ -403,11 +404,12 @@ ${jsonLd()}
         Ask an agent. Go live in ~45 seconds with a custom-branded owned-audience website on your domain. Sell products, tickets, merch, affiliate recommendations, and capture subscribers tonight — no planning deck, no big team, just go live.
       </p>
       <div class="badges">
-        <a class="badge cta" href="https://doomscrollr.com/dashboard">Get API key</a>
-        <a class="badge" href="https://doomscrollr.com/docs/claude.md">Claude setup</a>
+        <a class="badge cta" href="https://doomscrollr.com/register?free=1&utm_source=mcp_landing&utm_medium=hero_cta&utm_campaign=developer_funnel&utm_content=get_api_key">Get API key</a>
+        <a class="badge" href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=hero_badge&utm_campaign=developer_funnel&utm_content=featured_examples">Featured examples</a>
+        <a class="badge" href="https://doomscrollr.com/docs/claude.md?utm_source=mcp_landing&utm_medium=hero_badge&utm_campaign=developer_funnel&utm_content=claude_setup">Claude setup</a>
         <a class="badge" href="https://www.npmjs.com/package/${PACKAGE}">MCP npm</a>
         <a class="badge" href="https://clawhub.ai/aaayersss/doomscrollr">ClawHub</a>
-        <a class="badge" href="https://doomscrollr.com/openapi.json">OpenAPI</a>
+        <a class="badge" href="https://doomscrollr.com/openapi.json?utm_source=mcp_landing&utm_medium=hero_badge&utm_campaign=developer_funnel&utm_content=openapi">OpenAPI</a>
         <span class="badge">MCP Registry: com.doomscrollr/mcp</span>
       </div>
     </div>
@@ -451,7 +453,7 @@ OpenAPI: https://doomscrollr.com/openapi.json</code></pre>
   </section>
 </main>
 <footer>
-  <a href="https://doomscrollr.com">doomscrollr.com</a> · <a href="https://doomscrollr.com/docs/claude-connector-submission.md">Claude submission kit</a> · <a href="/llms.txt">llms.txt</a> · <a href="/.well-known/mcp">discovery JSON</a> · Built by DOOMSCROLLR
+  <a href="https://doomscrollr.com?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=homepage">doomscrollr.com</a> · <a href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=featured">featured examples</a> · <a href="https://doomscrollr.com/docs/claude-connector-submission.md?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=claude_submission">Claude submission kit</a> · <a href="/llms.txt">llms.txt</a> · <a href="/.well-known/mcp">discovery JSON</a> · Built by DOOMSCROLLR
 </footer>
 </body>
 </html>`;

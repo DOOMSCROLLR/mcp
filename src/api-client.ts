@@ -3,6 +3,8 @@
  */
 
 const DEFAULT_BASE_URL = "https://doomscrollr.com/api/v1";
+const CLIENT_NAME = "@doomscrollr/mcp-server";
+const CLIENT_VERSION = "1.0.13";
 
 export class DoomscrollrClient {
   private baseUrl: string;
@@ -22,6 +24,9 @@ export class DoomscrollrClient {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json",
+      "User-Agent": `${CLIENT_NAME}/${CLIENT_VERSION}`,
+      "X-Doomscrollr-Client": CLIENT_NAME,
+      "X-Doomscrollr-Client-Version": CLIENT_VERSION,
     };
     if (this.apiKey) {
       headers["Authorization"] = `Bearer ${this.apiKey}`;
@@ -55,6 +60,9 @@ export class DoomscrollrClient {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "text/csv, text/plain, application/json",
+      "User-Agent": `${CLIENT_NAME}/${CLIENT_VERSION}`,
+      "X-Doomscrollr-Client": CLIENT_NAME,
+      "X-Doomscrollr-Client-Version": CLIENT_VERSION,
     };
     if (this.apiKey) {
       headers["Authorization"] = `Bearer ${this.apiKey}`;
@@ -86,7 +94,13 @@ export class DoomscrollrClient {
     const url = `${this.baseUrl}/register`;
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": `${CLIENT_NAME}/${CLIENT_VERSION}`,
+        "X-Doomscrollr-Client": CLIENT_NAME,
+        "X-Doomscrollr-Client-Version": CLIENT_VERSION,
+      },
       body: JSON.stringify(params),
     });
     return res.json();

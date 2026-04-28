@@ -12,7 +12,9 @@ From prompt to live owned-audience website in ~45 seconds.
 
 ### 1. Get an API key
 
-Create an account at [doomscrollr.com](https://doomscrollr.com). Your API key is in Dashboard → Settings → API keys.
+Create an account at [doomscrollr.com](https://doomscrollr.com/register?free=1&utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_get_api_key). Your API key is in Dashboard → Settings → API keys.
+
+Want to see what agents can build? Browse the public [AI-built featured examples](https://doomscrollr.com/featured?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_featured_examples).
 
 ### 2. Install in Claude Desktop / local MCP clients
 
@@ -97,9 +99,10 @@ All tools are namespaced `doomscrollr_*`.
 Use MCP when an agent is directly doing the work. Use REST/OpenAPI for apps and workflow automation.
 
 - REST API: `https://doomscrollr.com/api/v1`
-- OpenAPI: `https://doomscrollr.com/openapi.json`
-- n8n setup docs: `https://doomscrollr.com/docs/n8n.md`
-- n8n workflow templates: `https://doomscrollr.com/n8n/workflows/`
+- OpenAPI: `https://doomscrollr.com/openapi.json?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_openapi`
+- Featured examples: `https://doomscrollr.com/featured?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_featured_examples`
+- n8n setup docs: `https://doomscrollr.com/docs/n8n.md?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_n8n_docs`
+- n8n workflow templates: `https://doomscrollr.com/n8n/workflows/?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_n8n_templates`
 
 ## Environment variables
 
