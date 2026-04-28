@@ -294,6 +294,10 @@ export class DoomscrollrClient {
     return this.request("POST", "/pages/contact", params);
   }
 
+  async buildReplacementFlow(flow: string, params: Record<string, unknown>) {
+    return this.request("POST", `/flows/${flow}`, params);
+  }
+
   // ── Products ────────────────────────────────────────────────
   async listProducts(params?: { per_page?: number; page?: number; q?: string; type?: string; min_price?: number; max_price?: number }) {
     const qs = new URLSearchParams();
