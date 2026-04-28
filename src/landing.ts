@@ -9,7 +9,6 @@
 
 const ENDPOINT = "https://mcp.doomscrollr.com/mcp";
 const PACKAGE = "@doomscrollr/mcp-server";
-const REST_SDK = "@doomscrollr/api"; // REST SDK package prepared; npm publish pending auth
 const BRAND = "DOOMSCROLLR";
 const TITLE = `${BRAND} MCP + API — Build Owned Audience Websites from AI Agents`;
 const DESCRIPTION =
@@ -136,13 +135,12 @@ Skill docs: https://doomscrollr.com/docs/openclaw.md`,
   },
   {
     surface: "REST API / vibe code",
-    label: "HTTP now, SDK next",
-    body: "When you are building an app instead of connecting an agent, use the normal REST API. The TypeScript SDK package is prepared; npm publish is next after auth is restored.",
+    label: "HTTP API",
+    body: "When you are building an app instead of connecting an agent, use the normal REST API with Bearer auth and the OpenAPI schema.",
     code: `curl https://doomscrollr.com/api/v1/profile \
   -H "Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY"
 
-OpenAPI: https://doomscrollr.com/openapi.json
-SDK package name: ${REST_SDK} (publishing next)`,
+OpenAPI: https://doomscrollr.com/openapi.json`,
   },
 ];
 
@@ -210,7 +208,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "MCP or REST API?",
-    a: "Use MCP when an AI agent is doing the work from Claude, ChatGPT, Cursor, VS Code, JetBrains, Windsurf, Cline, OpenClaw, or another MCP client. Use the REST API or @doomscrollr/api when you are coding an app or integration directly.",
+    a: "Use MCP when an AI agent is doing the work from Claude, ChatGPT, Cursor, VS Code, JetBrains, Windsurf, Cline, OpenClaw, or another MCP client. Use the REST API when you are coding an app or integration directly.",
   },
   {
     q: "Where do I get a key?",
@@ -242,7 +240,6 @@ function jsonLd(): string {
     url: "https://mcp.doomscrollr.com",
     sameAs: [
       "https://www.npmjs.com/package/@doomscrollr/mcp-server",
-      "https://www.npmjs.com/package/@doomscrollr/api",
       "https://registry.modelcontextprotocol.io/v0/servers/com.doomscrollr/mcp",
       "https://github.com/aaayersss/doomscrollr-mcp",
     ],
@@ -426,7 +423,7 @@ OpenAPI: https://doomscrollr.com/openapi.json</code></pre>
 
   <section id="quickstart">
     <h2>Quickstart by surface</h2>
-    <p class="section-intro">Pick the place you work. MCP is best for agents and is live on npm as @doomscrollr/mcp-server. REST is best for apps, automations, and vibe-coded products; the TypeScript SDK package is prepared and pending npm publish.</p>
+    <p class="section-intro">Pick the place you work. MCP is best for agents and is live on npm as @doomscrollr/mcp-server. REST is best for apps, automations, and vibe-coded products.</p>
     <div class="setup-grid">${setupCards}</div>
   </section>
 
@@ -472,10 +469,9 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP + API
 - ClawHub skill: https://clawhub.ai/aaayersss/doomscrollr
 - MCP Registry: https://registry.modelcontextprotocol.io/v0/servers/com.doomscrollr/mcp
 
-## Use REST/API SDK for apps
+## Use REST for apps
 - REST API: https://doomscrollr.com/api/v1
 - OpenAPI: https://doomscrollr.com/openapi.json
-- TypeScript SDK: @doomscrollr/api (prepared; npm publish pending auth)
 
 ## High-intent prompts
 - Build me a Linktree, but owned.
@@ -522,7 +518,6 @@ export const DISCOVERY_JSON = {
   apiBase: "https://doomscrollr.com/api/v1",
   openapi: "https://doomscrollr.com/openapi.json",
   npmPackage: PACKAGE,
-  apiSdkPackage: REST_SDK,
   registry: "https://registry.modelcontextprotocol.io/v0/servers/com.doomscrollr/mcp",
   github: "https://github.com/aaayersss/doomscrollr-mcp",
   dashboard: "https://doomscrollr.com/dashboard",
