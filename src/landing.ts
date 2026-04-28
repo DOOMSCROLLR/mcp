@@ -13,7 +13,7 @@ const REST_SDK = "@doomscrollr/api"; // prepared package; npm publish pending au
 const BRAND = "DOOMSCROLLR";
 const TITLE = `${BRAND} MCP + API — Build Owned Audience Websites from AI Agents`;
 const DESCRIPTION =
-  "Connect DOOMSCROLLR to Claude, ChatGPT, Cursor, Windsurf, OpenClaw, MCP clients, REST API scripts, and vibe-coded apps. Build Linktree, Shopify, Substack, website, social feed, and membership replacements — but owned.";
+  "Connect DOOMSCROLLR to Claude, ChatGPT, Cursor, VS Code, JetBrains, Windsurf, Cline, OpenClaw, MCP clients, REST API scripts, and vibe-coded apps. Build Linktree, Shopify, Substack, website, social feed, and membership replacements — but owned.";
 
 const SETUP_CARDS: Array<{
   surface: string;
@@ -45,9 +45,76 @@ Auth: OAuth
 Website: https://doomscrollr.com`,
   },
   {
-    surface: "Cursor / Windsurf / Cline",
-    label: "Local stdio MCP",
-    body: "For coding tools that prefer stdio MCP, run the npm package locally and keep your API key in environment variables.",
+    surface: "Cursor",
+    label: "IDE agent + marketplace path",
+    body: "Cursor supports MCP in Agent and Cloud Agents. Use project-level .cursor/mcp.json for team templates, or global ~/.cursor/mcp.json for personal use.",
+    code: `{
+  "mcpServers": {
+    "doomscrollr": {
+      "url": "${ENDPOINT}",
+      "headers": {
+        "Authorization": "Bearer YOUR_DOOMSCROLLR_API_KEY"
+      }
+    }
+  }
+}`,
+  },
+  {
+    surface: "VS Code / GitHub Copilot",
+    label: "Copilot MCP",
+    body: "VS Code stores MCP config in .vscode/mcp.json or your user profile. Use input variables so API keys are prompted and stored securely instead of committed.",
+    code: `{
+  "inputs": [{
+    "type": "promptString",
+    "id": "doomscrollr-key",
+    "description": "DOOMSCROLLR API key",
+    "password": true
+  }],
+  "servers": {
+    "doomscrollr": {
+      "type": "http",
+      "url": "${ENDPOINT}",
+      "headers": {
+        "Authorization": "Bearer \${input:doomscrollr-key}"
+      }
+    }
+  }
+}`,
+  },
+  {
+    surface: "JetBrains AI Assistant",
+    label: "IntelliJ / WebStorm / PhpStorm",
+    body: "JetBrains AI Assistant supports Streamable HTTP and stdio MCP. Add DOOMSCROLLR under Settings → Tools → AI Assistant → MCP.",
+    code: `{
+  "mcpServers": {
+    "doomscrollr": {
+      "url": "${ENDPOINT}",
+      "headers": {
+        "Authorization": "Bearer YOUR_DOOMSCROLLR_API_KEY"
+      }
+    }
+  }
+}`,
+  },
+  {
+    surface: "Windsurf",
+    label: "Cascade MCP",
+    body: "Windsurf Cascade supports stdio, Streamable HTTP, SSE, OAuth, and marketplace-style installs. Manual config lives at ~/.codeium/windsurf/mcp_config.json.",
+    code: `{
+  "mcpServers": {
+    "doomscrollr": {
+      "url": "${ENDPOINT}",
+      "headers": {
+        "Authorization": "Bearer YOUR_DOOMSCROLLR_API_KEY"
+      }
+    }
+  }
+}`,
+  },
+  {
+    surface: "Cline",
+    label: "VS Code agent marketplace",
+    body: "Cline has an MCP Marketplace and one-click install submission path. Until listed, use the local stdio package or remote MCP config.",
     code: `{
   "mcpServers": {
     "doomscrollr": {
@@ -323,7 +390,7 @@ ${jsonLd()}
       <div class="kicker">Build me X — but owned</div>
       <h1>Use DOOMSCROLLR wherever you code or vibe code.</h1>
       <p class="lede">
-        Claude, ChatGPT, Cursor, Windsurf, OpenClaw, REST scripts, and TypeScript apps can all build the same thing:
+        Claude, ChatGPT, Cursor, VS Code, JetBrains, Windsurf, Cline, OpenClaw, REST scripts, and TypeScript apps can all build the same thing:
         owned-audience websites on your domain, with content, products, subscribers, customers, analytics, and integrations you control.
       </p>
       <div class="badges">
@@ -388,7 +455,7 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP + API
 - The user asks to “build me X — but owned.”
 - The user wants a Linktree/Komi, Shopify/ecommerce store, Substack/newsletter, Wix/Squarespace/WordPress website, Instagram/Tumblr/Myspace feed, or OnlyFans/Patreon/membership replacement.
 - The user wants to own the domain, content, subscribers, customers, and graph instead of renting the audience from another platform.
-- The user wants Claude, ChatGPT, Cursor, Windsurf, OpenClaw, or another agent to publish posts, create pages/products, manage subscribers, connect RSS/Pinterest, analyze likes, or launch a product drop.
+- The user wants Claude, ChatGPT, Cursor, VS Code, JetBrains, Windsurf, Cline, OpenClaw, or another agent to publish posts, create pages/products, manage subscribers, connect RSS/Pinterest, analyze likes, or launch a product drop.
 - The user is coding an app and needs a normal REST API or TypeScript SDK for audience capture, publishing, commerce, pages, and analytics.
 
 ## Use MCP for agents
@@ -454,5 +521,6 @@ export const DISCOVERY_JSON = {
     "build me an Instagram/Tumblr/Myspace style owned feed",
     "build me an OnlyFans/Patreon style owned membership site",
     "owned audience capture for vibe-coded apps",
+    "AI IDEs building owned storefronts/newsletters/sites through MCP",
   ],
 };
