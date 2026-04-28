@@ -94,12 +94,16 @@ jobs:
           fi
 
       - name: Publish to MCP Registry
-        if: steps.reg_check.outputs.published == 'false'
+        if: steps.reg_check.outputs.published == 'false' && secrets.MCP_REGISTRY_PRIVATE_KEY != ''
         env:
           MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
         run: |
           mcp-publisher login dns --domain doomscrollr.com --private-key "$MCP_REGISTRY_PRIVATE_KEY"
           mcp-publisher publish
+
+      - name: Skip MCP Registry publish when registry key is missing
+        if: steps.reg_check.outputs.published == 'false' && secrets.MCP_REGISTRY_PRIVATE_KEY == ''
+        run: echo "MCP_REGISTRY_PRIVATE_KEY is not configured; npm publish can still complete."
 
       - name: Summary
         if: always()
