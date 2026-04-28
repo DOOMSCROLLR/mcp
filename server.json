@@ -5,7 +5,7 @@
   "description": "AI agents build owned-audience websites: posts, products, subscribers, domains, tickets.",
   "version": "1.0.11",
   "repository": {
-    "url": "https://github.com/aaayersss/doomscrollr-mcp",
+    "url": "https://github.com/DOOMSCROLLR/mcp",
     "source": "github"
   },
   "websiteUrl": "https://mcp.doomscrollr.com",
@@ -20,7 +20,7 @@
       "environmentVariables": [
         {
           "name": "DOOMSCROLLR_API_KEY",
-          "description": "Your DOOMSCROLLR API key. Get one free at https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "description": "Your DOOMSCROLLR API key. Get one free at https://doomscrollr.com/dashboard (Settings → API keys).",
           "isRequired": true,
           "isSecret": true,
           "format": "string"
@@ -51,7 +51,7 @@
       ],
       "variables": {
         "DOOMSCROLLR_API_KEY": {
-          "description": "Your DOOMSCROLLR API key from https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "description": "Your DOOMSCROLLR API key from https://doomscrollr.com/dashboard (Settings → API keys).",
           "isRequired": true,
           "isSecret": true,
           "format": "string"

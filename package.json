@@ -2,7 +2,7 @@
   "name": "@doomscrollr/mcp-server",
   "version": "1.0.11",
   "mcpName": "com.doomscrollr/mcp",
-  "description": "DOOMSCROLLR MCP server \u2014 AI agents build owned-audience websites, affiliate storefronts, product drops, newsletters, tickets, and subscriber capture for the audience layer of the AI agent world.",
+  "description": "DOOMSCROLLR MCP server — AI agents build owned-audience websites, affiliate storefronts, product drops, newsletters, tickets, and subscriber capture for the audience layer of the AI agent world.",
   "main": "dist/index.js",
   "bin": {
     "doomscrollr-mcp": "dist/index.js",
@@ -51,5 +51,12 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node": "^20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DOOMSCROLLR/mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DOOMSCROLLR/mcp/issues"
   }
 }
