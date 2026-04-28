@@ -87,6 +87,11 @@ app.get("/.well-known/mcp", (_req, res) => {
   res.json(DISCOVERY_JSON);
 });
 
+app.get("/.well-known/openai-apps-challenge", (_req, res) => {
+  const token = process.env.OPENAI_APPS_CHALLENGE_TOKEN || "66K8q2ggOB94eP5nwf1CFnGE_SysqT_i-pCe-TGu0dM";
+  res.type("text/plain").send(token);
+});
+
 app.get(["/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp"], (req, res) => {
   res.json(protectedResourceMetadata(req));
 });
