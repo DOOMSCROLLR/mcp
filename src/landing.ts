@@ -9,7 +9,7 @@
 
 const ENDPOINT = "https://mcp.doomscrollr.com/mcp";
 const PACKAGE = "@doomscrollr/mcp-server";
-const REST_SDK = "@doomscrollr/api";
+const REST_SDK = "@doomscrollr/api"; // prepared package; npm publish pending auth
 const BRAND = "DOOMSCROLLR";
 const TITLE = `${BRAND} MCP + API — Build Owned Audience Websites from AI Agents`;
 const DESCRIPTION =
@@ -68,12 +68,13 @@ Skill docs: https://doomscrollr.com/docs/openclaw.md`,
   },
   {
     surface: "REST API / vibe code",
-    label: "HTTP + TypeScript SDK",
-    body: "When you are building an app instead of connecting an agent, use the normal REST API or npm SDK.",
-    code: `npm install ${REST_SDK}
+    label: "HTTP now, SDK next",
+    body: "When you are building an app instead of connecting an agent, use the normal REST API. The TypeScript SDK package is prepared and will be published after npm auth is restored.",
+    code: `curl https://doomscrollr.com/api/v1/profile \
+  -H "Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY"
 
-import { DoomscrollrApi } from "${REST_SDK}";
-const ds = new DoomscrollrApi({ apiKey: process.env.DOOMSCROLLR_API_KEY });`,
+OpenAPI: https://doomscrollr.com/openapi.json
+SDK package name: ${REST_SDK} (publishing next)`,
   },
 ];
 
@@ -339,7 +340,7 @@ ${jsonLd()}
       <pre><code>POST ${ENDPOINT}
 Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY</code></pre>
       <pre><code>REST API: https://doomscrollr.com/api/v1
-SDK: npm install ${REST_SDK}</code></pre>
+OpenAPI: https://doomscrollr.com/openapi.json</code></pre>
     </aside>
   </section>
 
@@ -352,7 +353,7 @@ SDK: npm install ${REST_SDK}</code></pre>
 
   <section id="quickstart">
     <h2>Quickstart by surface</h2>
-    <p class="section-intro">Pick the place you work. MCP is best for agents. REST and the TypeScript SDK are best for apps, automations, and vibe-coded products.</p>
+    <p class="section-intro">Pick the place you work. MCP is best for agents. REST is best for apps, automations, and vibe-coded products; the TypeScript SDK package is prepared and pending npm publish.</p>
     <div class="setup-grid">${setupCards}</div>
   </section>
 
@@ -399,7 +400,7 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP + API
 ## Use REST/API SDK for apps
 - REST API: https://doomscrollr.com/api/v1
 - OpenAPI: https://doomscrollr.com/openapi.json
-- TypeScript SDK: @doomscrollr/api
+- TypeScript SDK: @doomscrollr/api (prepared; npm publish pending auth)
 
 ## High-intent prompts
 - Build me a Linktree, but owned.
