@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { DoomscrollrClient } from "./api-client.js";
+import { registerWidgetResources, widgetResult, widgetToolMeta } from "./widgets.js";
 
 export function createServer(apiKey: string, baseUrl?: string): McpServer {
   const client = new DoomscrollrClient(apiKey, baseUrl);
@@ -9,6 +10,8 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     name: "doomscrollr",
     version: "1.0.9",
   });
+
+  registerWidgetResources(server);
 
   const toolAnnotationsFor = (name: string) => {
     const readOnlyPrefixes = [
@@ -337,19 +340,23 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "doomscrollr_search_pinterest_and_post",
-    "Search public Pinterest for visual content and create image posts from the best results. Use this for prompts like 'Search Pinterest for Air Cooled Porsche content and post it to my DOOMSCROLLR.' Prefer status='draft' when the user has not explicitly approved immediate publishing.",
     {
-      query: z.string().min(1).max(255).describe("Pinterest search query, e.g. 'air cooled Porsche'"),
-      limit: z.number().int().min(1).max(10).optional().describe("Number of Pinterest results to turn into DOOMSCROLLR posts"),
-      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status. Use draft unless the user clearly asked to publish now."),
-      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
-      tags: z.string().optional().describe("Comma-separated tags, e.g. 'porsche,cars,air-cooled'"),
+      description: "Search public Pinterest for visual content and create image posts from the best results. Use this for prompts like 'Search Pinterest for Air Cooled Porsche content and post it to my DOOMSCROLLR.' Prefer status='draft' when the user has not explicitly approved immediate publishing.",
+      inputSchema: {
+        query: z.string().min(1).max(255).describe("Pinterest search query, e.g. 'air cooled Porsche'"),
+        limit: z.number().int().min(1).max(10).optional().describe("Number of Pinterest results to turn into DOOMSCROLLR posts"),
+        status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status. Use draft unless the user clearly asked to publish now."),
+        publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
+        tags: z.string().optional().describe("Comma-separated tags, e.g. 'porsche,cars,air-cooled'"),
+      },
+      annotations: toolAnnotationsFor("doomscrollr_search_pinterest_and_post"),
+      _meta: widgetToolMeta("pinterest", "Searching Pinterest…", "Pinterest drafts ready"),
     },
     async (params) => {
-      const result = await client.searchPinterestAndPost(params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      const result = await client.searchPinterestAndPost(params as any);
+      return widgetResult("pinterest", result);
     }
   );
 
@@ -441,16 +448,20 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "doomscrollr_top_liked_posts",
-    "Show which posts are getting the most likes over a recent time window. Use this for prompts like 'Tell me which posts are getting the most likes.'",
     {
-      limit: z.number().int().min(1).max(50).optional().describe("How many top posts to return"),
-      days: z.number().int().min(1).max(3650).optional().describe("Lookback window in days; default 30"),
+      description: "Show which posts are getting the most likes over a recent time window. Use this for prompts like 'Tell me which posts are getting the most likes.'",
+      inputSchema: {
+        limit: z.number().int().min(1).max(50).optional().describe("How many top posts to return"),
+        days: z.number().int().min(1).max(3650).optional().describe("Lookback window in days; default 30"),
+      },
+      annotations: toolAnnotationsFor("doomscrollr_top_liked_posts"),
+      _meta: widgetToolMeta("analytics", "Loading analytics…", "Top posts ready"),
     },
     async (params) => {
-      const result = await client.topLikedPosts(params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      const result = await client.topLikedPosts(params as any);
+      return widgetResult("analytics", result);
     }
   );
 
@@ -488,13 +499,17 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "doomscrollr_apply_style_preset",
-    "Apply a recognizable visual direction to DOOMSCROLLR settings. Use this for prompts like 'Update the styling of my DOOMSCROLLR to look like Skims.' Currently supports skims, brutalist, editorial, and minimal presets using existing editable settings.",
     {
-      preset: z.enum(["skims", "brutalist", "editorial", "minimal"]).describe("Style direction to apply"),
-      cta_bar_text: z.string().max(500).optional().describe("Optional CTA bar text"),
-      cta_bar_url: z.string().url().optional().describe("Optional CTA destination"),
+      description: "Apply a recognizable visual direction to DOOMSCROLLR settings. Use this for prompts like 'Update the styling of my DOOMSCROLLR to look like Skims.' Currently supports skims, brutalist, editorial, and minimal presets using existing editable settings.",
+      inputSchema: {
+        preset: z.enum(["skims", "brutalist", "editorial", "minimal"]).describe("Style direction to apply"),
+        cta_bar_text: z.string().max(500).optional().describe("Optional CTA bar text"),
+        cta_bar_url: z.string().url().optional().describe("Optional CTA destination"),
+      },
+      annotations: toolAnnotationsFor("doomscrollr_apply_style_preset"),
+      _meta: widgetToolMeta("style", "Applying style…", "Style applied"),
     },
     async ({ preset, cta_bar_text, cta_bar_url }) => {
       const presets: Record<string, Record<string, unknown>> = {
@@ -544,37 +559,41 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       if (cta_bar_text) params.cta_bar_text = cta_bar_text;
       if (cta_bar_url) params.cta_bar_url = cta_bar_url;
       const result = await client.updateSettings(params);
-      return { content: [{ type: "text", text: JSON.stringify({ preset, updated_settings: result }, null, 2) }] };
+      return widgetResult("style", { preset, updated_settings: result });
     }
   );
 
-  server.tool(
+  server.registerTool(
     "doomscrollr_create_product",
-    "Create a product for sale on your DOOMSCROLLR — physical goods, digital downloads, event tickets, or subscriptions.",
     {
-      title: z.string().describe("Product name"),
-      description: z.string().optional().describe("Product description"),
-      price: z.number().min(0).describe("Price in dollars (e.g., 29.99)"),
-      type: z.enum(["physical", "digital", "ticket", "subscription"]).describe("Product type"),
-      cover_photo_url: z.string().url().optional().describe("Cover image/photo URL supplied by the user or ChatGPT, e.g. for 'Create a $50 product from this photo and name it Tie Dye Pants'"),
-      url: z.string().url().optional().describe("External URL (for digital products)"),
-      inventory_count: z.number().int().min(0).optional().describe("Stock quantity for non-variant physical products"),
-      shipping_required: z.boolean().optional().describe("Whether shipping is required; physical products usually true"),
-      shipping_cost: z.number().min(0).optional().describe("Shipping cost in dollars"),
-      variant_options: z.array(z.object({
-        name: z.string().describe("Option name, e.g. Color or Size"),
-        values: z.array(z.string()).describe("Allowed values for this option"),
-      })).optional().describe("Variant option definitions for physical products, e.g. Color and Size"),
-      variants: z.array(z.object({
-        variant_data: z.record(z.string(), z.string()).describe("Map of option name to selected value, e.g. {Color:'Rose', Size:'2T'}"),
-        price: z.number().min(0).describe("Variant price in dollars"),
-        inventory_count: z.number().int().min(0).describe("Stock for this exact variant"),
-        sku: z.string().optional().describe("Optional SKU"),
-      })).optional().describe("Every sellable variant with per-variant price and inventory"),
+      description: "Create a product for sale on your DOOMSCROLLR — physical goods, digital downloads, event tickets, or subscriptions.",
+      inputSchema: {
+        title: z.string().describe("Product name"),
+        description: z.string().optional().describe("Product description"),
+        price: z.number().min(0).describe("Price in dollars (e.g., 29.99)"),
+        type: z.enum(["physical", "digital", "ticket", "subscription"]).describe("Product type"),
+        cover_photo_url: z.string().url().optional().describe("Cover image/photo URL supplied by the user or ChatGPT, e.g. for 'Create a $50 product from this photo and name it Tie Dye Pants'"),
+        url: z.string().url().optional().describe("External URL (for digital products)"),
+        inventory_count: z.number().int().min(0).optional().describe("Stock quantity for non-variant physical products"),
+        shipping_required: z.boolean().optional().describe("Whether shipping is required; physical products usually true"),
+        shipping_cost: z.number().min(0).optional().describe("Shipping cost in dollars"),
+        variant_options: z.array(z.object({
+          name: z.string().describe("Option name, e.g. Color or Size"),
+          values: z.array(z.string()).describe("Allowed values for this option"),
+        })).optional().describe("Variant option definitions for physical products, e.g. Color and Size"),
+        variants: z.array(z.object({
+          variant_data: z.record(z.string(), z.string()).describe("Map of option name to selected value, e.g. {Color:'Rose', Size:'2T'}"),
+          price: z.number().min(0).describe("Variant price in dollars"),
+          inventory_count: z.number().int().min(0).describe("Stock for this exact variant"),
+          sku: z.string().optional().describe("Optional SKU"),
+        })).optional().describe("Every sellable variant with per-variant price and inventory"),
+      },
+      annotations: toolAnnotationsFor("doomscrollr_create_product"),
+      _meta: widgetToolMeta("product", "Creating product…", "Product ready"),
     },
     async (params) => {
-      const result = await client.createProduct(params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      const result = await client.createProduct(params as any);
+      return widgetResult("product", result);
     }
   );
 

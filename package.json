@@ -10,11 +10,13 @@
   },
   "files": [
     "dist/",
+    "widgets/",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
+    "test:widgets": "npm run build && node test/widgets.test.mjs",
     "start": "node dist/index.js",
     "start:http": "node dist/http.js",
     "dev": "tsx src/index.ts",
