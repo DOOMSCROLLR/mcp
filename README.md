@@ -1,24 +1,22 @@
 # @doomscrollr/mcp-server
 
-The [Model Context Protocol](https://modelcontextprotocol.io) server for **DOOMSCROLLR** — lets AI agents build and operate an owned creator audience end-to-end.
+The Model Context Protocol server for **DOOMSCROLLR** — the audience layer for the AI agent world.
 
-Create a DOOMSCROLLR, publish posts, manage subscribers, sell products, connect Pinterest boards, buy custom domains, and more — all from Claude Desktop, ChatGPT, Cursor, or any MCP-compatible client.
+Use it when someone asks an agent to: **“Build me X — but owned.”**
 
-## What you can do with it
+DOOMSCROLLR lets Claude, ChatGPT, Cursor, Windsurf, Cline, OpenClaw, and other MCP clients create and operate owned-audience websites with posts, pages, products, subscribers, affiliate recommendations, event tickets, domains, analytics, and integrations.
 
-> *"Set up a DOOMSCROLLR for Frida, my English Cocker Spaniel. Connect a few Pinterest boards about the breed. Buy the domain fridasfriends.com. Launch a $35 bandana product with an event-ticket upsell."*
-
-That whole paragraph takes about 45 seconds with this MCP server — the AI calls the tools, the backend does the work, the user answers two browser prompts (Stripe payment, Zapier OAuth when relevant).
+From prompt to live owned-audience website in ~45 seconds.
 
 ## Quick start
 
 ### 1. Get an API key
 
-Free account at [doomscrollr.com](https://doomscrollr.com). Your API key is in the dashboard under **Settings → API keys**.
+Create an account at [doomscrollr.com](https://doomscrollr.com). Your API key is in Dashboard → Settings → API keys.
 
-### 2. Install in Claude Desktop
+### 2. Install in Claude Desktop / local MCP clients
 
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Edit your MCP config:
 
 ```json
 {
@@ -34,109 +32,96 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Restart Claude Desktop. Ask it: *"What DOOMSCROLLR tools do you have?"*
+Restart the client and ask: _“What DOOMSCROLLR tools do you have?”_
 
 ### 3. Or install globally
 
 ```bash
 npm install -g @doomscrollr/mcp-server
-export DOOMSCROLLR_API_KEY=your_api_key_here
+export DOOMSCROLLR_API_KEY=***
 doomscrollr-mcp
 ```
 
-## Clients
+## Hosted remote MCP
 
-Works with any MCP-compatible client:
-
-- **Claude Desktop** — see config above
-- **Cursor / Windsurf / Cline** — same pattern, edit their MCP config
-- **ChatGPT / Claude remote connectors** — use the Streamable HTTP endpoint (see Remote HTTPS below)
-- **Custom agents via the MCP SDK** — connect over stdio or Streamable HTTP
-
-## Tools (27)
-
-| Category | Tools |
-|---|---|
-| Account | `create_world`, `get_profile`, `update_settings` |
-| Posts | `publish_post`, `publish_image_post`, `list_posts`, `update_post`, `delete_post` |
-| Products | `create_product`, `list_products`, `update_product`, `delete_product` |
-| Subscribers | `add_subscriber`, `list_subscribers`, `remove_subscriber` / `delete_subscriber` |
-| Domains | `search_domains`, `connect_domain`, `buy_domain`, `domain_status` |
-| Pinterest | `connect_pinterest`, `pinterest_status`, `disconnect_pinterest` |
-| Other integrations | `connect_instagram`, `connect_rss`, `get_zapier_templates` |
-| Embed | `get_embed_code` |
-
-All tools are namespaced `doomscrollr_*`.
-
-## Resources (3)
-
-| URI | MIME | Content |
-|---|---|---|
-| `doomscrollr://profile` | application/json | Current DOOMSCROLLR profile + stats |
-| `doomscrollr://posts` | application/json | Recent posts |
-| `doomscrollr://audience` | application/json | Subscribers |
-
-## Prompts (4)
-
-- `setup-doomscrollr` — guided end-to-end account setup
-- `add-audience-capture` — embed the subscriber widget on any site
-- `launch-product` — publish a product drop to your audience
-- `migrate-from-instagram` — reduce IG dependency, build an owned channel
-
-## Remote HTTPS (Streamable HTTP)
-
-DOOMSCROLLR runs a hosted Streamable HTTP MCP endpoint for remote MCP clients (ChatGPT remote connectors, Claude Messages API, etc).
+DOOMSCROLLR also runs a hosted Streamable HTTP MCP endpoint for remote clients:
 
 ```text
 POST https://mcp.doomscrollr.com/mcp
-Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY
+Authorization: Bearer <DOOMSCROLLR_API_KEY>
 ```
 
-The bearer token is your normal DOOMSCROLLR API key from the dashboard. The hosted server also exposes OAuth-compatible discovery and authorization endpoints for clients that require OAuth instead of custom Authorization headers.
+OAuth-compatible discovery and authorization endpoints are available for connector clients that require OAuth. Direct Bearer API-key auth remains supported.
 
-### Run the remote server locally
+## Recommended clients
 
-```bash
-npm install
-npm run build
-PORT=3000 npm run start:http
-```
+- Claude / Claude Code / Claude Desktop
+- ChatGPT Apps / custom MCP surfaces
+- Cursor
+- VS Code / GitHub Copilot MCP
+- JetBrains AI Assistant
+- Windsurf / Cascade
+- Cline
+- OpenClaw
+- Custom MCP SDK agents
 
-Then point your MCP client at:
+## Selected tools
 
-```text
-http://localhost:3000/mcp
-```
+All tools are namespaced `doomscrollr_*`.
 
-with header:
+| Category | Tools |
+|---|---|
+| Build-me flows | `build_linktree`, `build_komi`, `build_shopify`, `build_ecommerce`, `build_substack`, `build_newsletter`, `build_website`, `build_social_feed`, `build_membership` |
+| Account/settings | `create_world`, `get_profile`, `get_settings`, `update_settings`, `apply_style_preset` |
+| Posts/pages | `publish_post`, `publish_image_post`, `post_shopmy_products`, `list_posts`, `update_post`, `delete_post`, `create_page`, `create_contact_page` |
+| Commerce | `create_product`, `list_products`, `update_product`, `delete_product`, bulk product tools |
+| Audience | `add_subscriber`, `update_subscriber`, `list_subscribers`, `remove_subscriber`, `export_audience_csv`, bulk subscriber tools |
+| Domains | `search_domains`, `connect_domain`, `disconnect_domain`, `buy_domain`, `domain_status` |
+| Pinterest/RSS | `search_pinterest`, `search_pinterest_and_post`, `connect_pinterest`, `pinterest_status`, `disconnect_pinterest`, `connect_rss`, `rss_status`, `disconnect_rss` |
+| Analytics/integrations | `top_liked_posts`, `get_embed_code`, `get_zapier_templates`, `get_n8n_templates` |
 
-```text
-Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY
-```
+## High-intent prompts
+
+- “Build me a Linktree, but owned.”
+- “Build me a Shopify-style product drop.”
+- “Build me a Gumroad/Payhip digital product store, but owned.”
+- “Build me a ShopMy/LTK/Amazon Storefront, but owned.”
+- “Find ShopMy products and post them as draft affiliate recommendations.”
+- “Create a Luma/Eventbrite-style event page with tickets.”
+- “Turn this product photo into a $50 product drop.”
+- “Build me a Substack alternative on my own domain.”
+- “Which posts got the most likes this week?”
+
+## REST API and n8n
+
+Use MCP when an agent is directly doing the work. Use REST/OpenAPI for apps and workflow automation.
+
+- REST API: `https://doomscrollr.com/api/v1`
+- OpenAPI: `https://doomscrollr.com/openapi.json`
+- n8n setup docs: `https://doomscrollr.com/docs/n8n.md`
+- n8n workflow templates: `https://doomscrollr.com/n8n/workflows/`
 
 ## Environment variables
 
 | Variable | Required | Description |
 |---|---|---|
 | `DOOMSCROLLR_API_KEY` | yes for stdio | Your API key from the dashboard |
-| `DOOMSCROLLR_API_BASE` | no | Override the API base (defaults to `https://doomscrollr.com/api/v1`) |
+| `DOOMSCROLLR_API_BASE` | no | Override the API base, defaults to `https://doomscrollr.com/api/v1` |
 | `PORT` | no | Port for the remote HTTP server |
-| `HOST` | no | Host bind for the remote HTTP server (default `0.0.0.0`) |
-| `MCP_ALLOWED_ORIGINS` | no | Comma-separated CORS origins for the remote HTTP server (default `*`) |
+| `HOST` | no | Host bind for the remote HTTP server, default `0.0.0.0` |
+| `MCP_ALLOWED_ORIGINS` | no | Comma-separated CORS origins for the remote HTTP server, default `*` |
 
 ## Development
 
 ```bash
-git clone https://github.com/aaayersss/doomscrollr.git
-cd doomscrollr/mcp
 npm install
 npm run build
-DOOMSCROLLR_API_KEY=... node dist/index.js
+DOOMSCROLLR_API_KEY=*** node dist/index.js
 # or
 PORT=3000 npm run start:http
 ```
 
-Test with the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector):
+Test with the MCP Inspector:
 
 ```bash
 npx @modelcontextprotocol/inspector node dist/index.js
@@ -145,8 +130,3 @@ npx @modelcontextprotocol/inspector node dist/index.js
 ## License
 
 MIT
-
-
-## ChatGPT App readiness
-
-Version 1.0.9 adds MCP tool annotations (`readOnlyHint`, `destructiveHint`, and `openWorldHint`) so ChatGPT Apps / connector review can distinguish read-only, write, public, and destructive actions.

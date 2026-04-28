@@ -8,7 +8,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.9",
+    version: "1.0.11",
   });
 
   registerWidgetResources(server);
@@ -32,6 +32,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       "doomscrollr_pinterest_status",
       "doomscrollr_rss_status",
       "doomscrollr_top_liked_posts",
+      "doomscrollr_get_n8n_templates",
     ]);
     const writeNames = new Set([
       "doomscrollr_search_pinterest_and_post",
@@ -962,6 +963,42 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
           },
         ],
         all_integrations: "https://zapier.com/apps/doomscrollr/integrations",
+      };
+      return { content: [{ type: "text", text: JSON.stringify(templates, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_get_n8n_templates",
+    "Get n8n workflow templates for automating DOOMSCROLLR through REST/OpenAPI and the n8n HTTP Request node.",
+    {},
+    async () => {
+      const templates = {
+        docs: "https://doomscrollr.com/docs/n8n.md",
+        auth: "Authorization: Bearer <DOOMSCROLLR_API_KEY>",
+        base_url: "https://doomscrollr.com/api/v1",
+        templates: [
+          {
+            name: "RSS → DOOMSCROLLR Post",
+            description: "Import RSS items as DOOMSCROLLR link posts.",
+            url: "https://doomscrollr.com/n8n/workflows/rss-to-doomscrollr-post.json",
+          },
+          {
+            name: "Webhook → DOOMSCROLLR Subscriber",
+            description: "Capture form/webhook payloads as owned DOOMSCROLLR audience members.",
+            url: "https://doomscrollr.com/n8n/workflows/webhook-to-doomscrollr-subscriber.json",
+          },
+          {
+            name: "DOOMSCROLLR Audience → Google Sheets",
+            description: "Fetch owned audience members and append them to a Google Sheet.",
+            url: "https://doomscrollr.com/n8n/workflows/doomscrollr-audience-to-google-sheets.json",
+          },
+          {
+            name: "DOOMSCROLLR Posts → Slack",
+            description: "Poll recent DOOMSCROLLR posts and notify a Slack channel.",
+            url: "https://doomscrollr.com/n8n/workflows/doomscrollr-post-to-slack.json",
+          },
+        ],
       };
       return { content: [{ type: "text", text: JSON.stringify(templates, null, 2) }] };
     }
