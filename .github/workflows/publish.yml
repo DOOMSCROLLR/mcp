@@ -93,9 +93,20 @@ jobs:
             echo "com.doomscrollr/mcp@$VERSION not in registry — will publish"
           fi
 
-      # MCP Registry publishing needs MCP_REGISTRY_PRIVATE_KEY. Keep npm publishing
-      # independent so missing registry credentials never block npm releases.
-      # Re-enable this block after the registry secret is configured.
+      - name: Publish to MCP Registry
+        if: steps.reg_check.outputs.published == 'false' && env.MCP_REGISTRY_PRIVATE_KEY != ''
+        env:
+          MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
+        run: |
+          mcp-publisher login dns --domain doomscrollr.com --private-key "$MCP_REGISTRY_PRIVATE_KEY"
+          mcp-publisher publish
+
+      - name: Skip MCP Registry publish when registry key is missing
+        if: steps.reg_check.outputs.published == 'false' && env.MCP_REGISTRY_PRIVATE_KEY == ''
+        env:
+          MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
+        run: echo "MCP_REGISTRY_PRIVATE_KEY is not configured; npm publish can still complete."
+
       - name: Summary
         if: always()
         run: |
