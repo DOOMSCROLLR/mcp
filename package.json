@@ -1,8 +1,8 @@
 {
   "name": "@doomscrollr/mcp-server",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "mcpName": "com.doomscrollr/mcp",
-  "description": "DOOMSCROLLR MCP server \u2014 AI agents create DOOMSCROLLRs, publish posts, manage subscribers, sell products, connect Pinterest, and more. 57 tools for the owned-audience creator platform.",
+  "description": "DOOMSCROLLR MCP server — AI agents build owned-audience websites, affiliate storefronts, product drops, newsletters, tickets, and subscriber capture. 57 tools for the audience layer of the AI agent world.",
   "main": "dist/index.js",
   "bin": {
     "doomscrollr-mcp": "dist/index.js",

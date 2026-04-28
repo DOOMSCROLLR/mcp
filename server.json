@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
-  "description": "Build and operate an owned creator audience on DOOMSCROLLR \u2014 posts, products, subscribers, domains.",
-  "version": "1.0.9",
+  "description": "Build owned-audience websites from AI agents: posts, products, subscribers, domains, affiliate storefronts, tickets, and replacement flows.",
+  "version": "1.0.10",
   "repository": {
     "url": "https://github.com/aaayersss/doomscrollr-mcp",
     "source": "github"
@@ -13,14 +13,14 @@
     {
       "registryType": "npm",
       "identifier": "@doomscrollr/mcp-server",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "DOOMSCROLLR_API_KEY",
-          "description": "Your DOOMSCROLLR API key. Get one free at https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "description": "Your DOOMSCROLLR API key. Get one free at https://doomscrollr.com/dashboard (Settings → API keys).",
           "isRequired": true,
           "isSecret": true,
           "format": "string"
@@ -51,7 +51,7 @@
       ],
       "variables": {
         "DOOMSCROLLR_API_KEY": {
-          "description": "Your DOOMSCROLLR API key from https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "description": "Your DOOMSCROLLR API key from https://doomscrollr.com/dashboard (Settings → API keys).",
           "isRequired": true,
           "isSecret": true,
           "format": "string"
