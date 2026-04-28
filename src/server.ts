@@ -47,6 +47,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     const openWorldPrefixes = [
       "doomscrollr_create_",
       "doomscrollr_publish_",
+      "doomscrollr_post_",
       "doomscrollr_add_",
       "doomscrollr_update_",
       "doomscrollr_set_",
@@ -142,6 +143,28 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     },
     async (params) => {
       const result = await client.createLinkPost(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_post_shopmy_products",
+    "Post ShopMy affiliate product recommendations to DOOMSCROLLR. Use after finding ShopMy product/affiliate URLs for gift guides, outfit edits, beauty routines, home finds, travel kits, or other influencer recommendations. DOOMSCROLLR crawls the final retail page for title/description/photo while preserving the ShopMy URL as the click target so affiliate commission attribution remains intact.",
+    {
+      products: z.array(z.object({
+        url: z.string().url().describe("ShopMy affiliate/product URL to post"),
+        title: z.string().optional().describe("Optional override title; otherwise crawled from the final linked product page"),
+        description: z.string().optional().describe("Optional override description; otherwise crawled from the final linked product page"),
+        note: z.string().optional().describe("Creator recommendation note, e.g. why this product fits the edit"),
+      })).min(1).max(20).describe("ShopMy products to post"),
+      collection_title: z.string().optional().describe("Collection/edit title, e.g. 'Clean girl beauty under $50'"),
+      use_case: z.string().optional().describe("Use case/category, e.g. skincare routine, outfit edit, gift guide, home finds"),
+      tags: z.string().optional().describe("Comma-separated tags; shopmy, affiliate, and product-recommendation are added automatically by the API"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status; default is draft so creators can approve affiliate picks"),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication"),
+    },
+    async (params) => {
+      const result = await client.postShopmyProducts(params);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
   );

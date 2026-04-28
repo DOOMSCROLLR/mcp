@@ -298,6 +298,17 @@ export class DoomscrollrClient {
     return this.request("POST", `/flows/${flow}`, params);
   }
 
+  async postShopmyProducts(params: {
+    products: Array<{ url: string; title?: string; description?: string; note?: string }>;
+    collection_title?: string;
+    use_case?: string;
+    tags?: string;
+    status?: string;
+    publish_at?: string;
+  }) {
+    return this.request("POST", "/affiliate/shopmy/posts", params);
+  }
+
   // ── Products ────────────────────────────────────────────────
   async listProducts(params?: { per_page?: number; page?: number; q?: string; type?: string; min_price?: number; max_price?: number }) {
     const qs = new URLSearchParams();
