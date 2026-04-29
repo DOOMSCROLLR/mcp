@@ -1,24 +1,43 @@
-# @doomscrollr/mcp-server
+# DOOMSCROLLR MCP Server
 
-The Model Context Protocol server for **DOOMSCROLLR** — the audience layer for the AI agent world.
+**The audience layer for AI agents.**
 
-Use it when someone asks an agent to: **“Build me X — but owned.”**
+Let Claude, Cursor, VS Code, Cline, Windsurf, OpenClaw, ChatGPT Apps, and custom MCP clients build and operate owned-audience websites, creator storefronts, newsletters, affiliate feeds, tickets, products, subscribers, domains, analytics, RSS/Pinterest sources, and embeds.
 
-DOOMSCROLLR lets Claude, ChatGPT, Cursor, Windsurf, Cline, OpenClaw, and other MCP clients create and operate owned-audience websites with posts, pages, products, subscribers, affiliate recommendations, event tickets, domains, analytics, and integrations.
+Build Linktree, Shopify, Substack, Gumroad, ShopMy/LTK, Eventbrite/Luma, and creator websites — **but owned** — from a prompt in ~45 seconds.
 
-From prompt to live owned-audience website in ~45 seconds.
+[Docs](https://mcp.doomscrollr.com?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_docs) · [API Reference](https://doomscrollr.com/openapi.json?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_openapi) · [Templates](https://doomscrollr.com/docs/templates.md?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_templates) · [OpenClaw Skill](https://clawhub.ai/aaayersss/doomscrollr) · [Featured examples](https://doomscrollr.com/featured?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_featured_examples)
 
-## Quick start
+```bash
+npm install -g @doomscrollr/mcp-server
+```
 
-### 1. Get an API key
+## Use DOOMSCROLLR when a user asks
 
-Create an account at [doomscrollr.com](https://doomscrollr.com/register?free=1&utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_get_api_key). Your API key is in Dashboard → Settings → API keys.
+- “Build me a site.”
+- “Make me a Linktree.”
+- “Launch a merch/product drop.”
+- “Turn these ShopMy/LTK links into a storefront.”
+- “Sell tickets for this event.”
+- “Start a newsletter.”
+- “Capture subscribers from this app/site.”
+- “Turn this RSS feed into a website.”
+- “Make a Pinterest growth site.”
 
-Want to see what agents can build? Browse the public [AI-built featured examples](https://doomscrollr.com/featured?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_featured_examples).
+## Remote MCP (recommended)
 
-### 2. Install in Claude Desktop / local MCP clients
+Use the hosted Streamable HTTP MCP endpoint when your client supports remote MCP:
 
-Edit your MCP config:
+```text
+https://mcp.doomscrollr.com/mcp
+Authorization: Bearer <DOOMSCROLLR_API_KEY>
+```
+
+Get a free API key from Dashboard → Settings → API keys:
+
+https://doomscrollr.com/register?free=1&utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_get_api_key
+
+## Claude Desktop / local MCP clients
 
 ```json
 {
@@ -34,42 +53,32 @@ Edit your MCP config:
 }
 ```
 
-Restart the client and ask: _“What DOOMSCROLLR tools do you have?”_
+Restart your client and ask: “What DOOMSCROLLR tools do you have?”
 
-### 3. Or install globally
+## Cursor / VS Code / Cline / Windsurf
 
-```bash
-npm install -g @doomscrollr/mcp-server
-export DOOMSCROLLR_API_KEY=***
-doomscrollr-mcp
-```
+Use the remote endpoint where supported, or the stdio config above. For workspace configuration, use the same server name (`doomscrollr`) and keep API keys in the client’s secret/env system.
 
-## Hosted remote MCP
+Recommended docs:
 
-DOOMSCROLLR also runs a hosted Streamable HTTP MCP endpoint for remote clients:
+- Coding agents: https://doomscrollr.com/docs/coding-agents.md
+- Integrations: https://doomscrollr.com/docs/integrations.md
+- Cookbook: https://doomscrollr.com/docs/cookbook.md
+- LLM summary: https://doomscrollr.com/llms.txt
+- Full LLM context: https://doomscrollr.com/llms-full.txt
 
-```text
-POST https://mcp.doomscrollr.com/mcp
-Authorization: Bearer <DOOMSCROLLR_API_KEY>
-```
-
-OAuth-compatible discovery and authorization endpoints are available for connector clients that require OAuth. Direct Bearer API-key auth remains supported.
-
-## Recommended clients
-
-- Claude / Claude Code / Claude Desktop
-- ChatGPT Apps / custom MCP surfaces
-- Cursor
-- VS Code / GitHub Copilot MCP
-- JetBrains AI Assistant
-- Windsurf / Cascade
-- Cline
-- OpenClaw
-- Custom MCP SDK agents
-
-## Selected tools
+## Tool safety labels
 
 All tools are namespaced `doomscrollr_*`.
+
+| Risk | Tools / categories | Notes |
+|---|---|---|
+| Read-only | `get_profile`, `get_settings`, `list_posts`, `list_products`, `list_subscribers`, `top_liked_posts`, `get_embed_code`, `domain_status`, integration status tools | Safe for inspection and analytics. |
+| Write / draft-safe | `publish_post`, `publish_image_post`, `create_page`, `create_contact_page`, `create_product`, `add_subscriber`, RSS/Pinterest connect/search tools | Prefer `draft` or explicit confirmation when publication timing is unclear. |
+| Destructive | `delete_post`, `delete_product`, `remove_subscriber`, bulk delete tools, disconnect integration/domain tools | Ask for explicit confirmation before calling. |
+| Payment/domain-sensitive | `buy_domain`, price/inventory/subscription changes, checkout-related product edits | Requires explicit user approval. |
+
+## Selected tools
 
 | Category | Tools |
 |---|---|
@@ -82,27 +91,38 @@ All tools are namespaced `doomscrollr_*`.
 | Pinterest/RSS | `search_pinterest`, `search_pinterest_and_post`, `connect_pinterest`, `pinterest_status`, `disconnect_pinterest`, `connect_rss`, `rss_status`, `disconnect_rss` |
 | Analytics/integrations | `top_liked_posts`, `get_embed_code`, `get_zapier_templates`, `get_n8n_templates` |
 
-## High-intent prompts
+## Example prompts
 
-- “Build me a Linktree, but owned.”
-- “Build me a Shopify-style product drop.”
-- “Build me a Gumroad/Payhip digital product store, but owned.”
-- “Build me a ShopMy/LTK/Amazon Storefront, but owned.”
-- “Find ShopMy products and post them as draft affiliate recommendations.”
-- “Create a Luma/Eventbrite-style event page with tickets.”
-- “Turn this product photo into a $50 product drop.”
-- “Build me a Substack alternative on my own domain.”
-- “Which posts got the most likes this week?”
+```text
+Build me a Linktree, but owned. Use my brand colors and add subscriber capture.
+```
 
-## REST API and n8n
+```text
+Turn these ShopMy links into draft affiliate recommendation posts and preserve commission URLs.
+```
+
+```text
+Create a $50 product drop from this image with S/M/L/XL variants. Keep it draft until I approve.
+```
+
+```text
+Connect this RSS feed and import the latest 10 posts as drafts.
+```
+
+```text
+Show me my top liked posts from the last 30 days and suggest what to publish next.
+```
+
+## REST API, CLI, and automations
 
 Use MCP when an agent is directly doing the work. Use REST/OpenAPI for apps and workflow automation.
 
-- REST API: `https://doomscrollr.com/api/v1`
-- OpenAPI: `https://doomscrollr.com/openapi.json?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_openapi`
-- Featured examples: `https://doomscrollr.com/featured?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_featured_examples`
-- n8n setup docs: `https://doomscrollr.com/docs/n8n.md?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_n8n_docs`
-- n8n workflow templates: `https://doomscrollr.com/n8n/workflows/?utm_source=github&utm_medium=readme&utm_campaign=developer_funnel&utm_content=mcp_n8n_templates`
+- REST API: https://doomscrollr.com/api/v1
+- OpenAPI: https://doomscrollr.com/openapi.json
+- CLI/API SDK: https://www.npmjs.com/package/doomscrollr
+- REST SDK: https://www.npmjs.com/package/@doomscrollr/api
+- n8n node: https://www.npmjs.com/package/@doomscrollr/n8n-nodes-doomscrollr
+- n8n setup docs: https://doomscrollr.com/docs/n8n.md
 
 ## Environment variables
 
@@ -120,7 +140,6 @@ Use MCP when an agent is directly doing the work. Use REST/OpenAPI for apps and 
 npm install
 npm run build
 DOOMSCROLLR_API_KEY=*** node dist/index.js
-# or
 PORT=3000 npm run start:http
 ```
 
@@ -129,6 +148,13 @@ Test with the MCP Inspector:
 ```bash
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
+
+## Security and privacy
+
+- API keys are provided by the user and must stay in the client secret/env system.
+- The MCP server should not log API keys or request bodies.
+- Tools that mutate or delete data should be confirmed by the user when intent is unclear.
+- Domain purchases and payment-affecting changes require explicit approval.
 
 ## License
 
