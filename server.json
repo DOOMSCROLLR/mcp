@@ -3,7 +3,7 @@
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
   "description": "AI agents build owned-audience websites: posts, products, subscribers, domains, tickets.",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "repository": {
     "url": "https://github.com/DOOMSCROLLR/mcp",
     "source": "github"

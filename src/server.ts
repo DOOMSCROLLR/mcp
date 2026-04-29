@@ -8,7 +8,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.13",
+    version: "1.0.14",
   });
 
   registerWidgetResources(server);
