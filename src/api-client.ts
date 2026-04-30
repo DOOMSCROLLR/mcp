@@ -4,7 +4,7 @@
 
 const DEFAULT_BASE_URL = "https://doomscrollr.com/api/v1";
 const CLIENT_NAME = "@doomscrollr/mcp-server";
-const CLIENT_VERSION = "1.0.22";
+const CLIENT_VERSION = "1.0.23";
 
 export class DoomscrollrClient {
   private baseUrl: string;

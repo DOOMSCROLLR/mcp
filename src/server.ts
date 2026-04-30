@@ -9,7 +9,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.22",
+    version: "1.0.23",
   });
 
   registerWidgetResources(server);
@@ -436,7 +436,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   server.registerTool(
     "doomscrollr_import_shopify_products",
     {
-      description: "Scrape a public Shopify storefront product feed and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts. When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page.",
+      description: "Scrape a public Shopify storefront product feed and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts. When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page. Never append import attribution, source URLs, or phrases like 'Imported from... Original listing...' to product or post descriptions; source URLs belong only in metadata/tool results.",
       inputSchema: {
         url: z.string().url().describe("Public Shopify store, collection, or products.json URL"),
         mode: z.enum(["products", "posts", "both"]).describe("products = create DOOMSCROLLR products; posts = create feed posts linking to source Shopify products; both = do both"),

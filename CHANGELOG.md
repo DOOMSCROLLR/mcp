@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.23
+
+- Clarified Shopify imports must not append source attribution or original listing URLs to product/post descriptions.
+
 ## 1.0.22
 
 - Expanded npm keywords for AI-agent discovery (`ai`, `ai-agents`, MCP, ChatGPT, Claude, OpenAI, automation, ecommerce).
