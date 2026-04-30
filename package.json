@@ -1,8 +1,8 @@
 {
   "name": "@doomscrollr/mcp-server",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "mcpName": "com.doomscrollr/mcp",
-  "description": "DOOMSCROLLR MCP server \u2014 AI agents build owned-audience websites, affiliate storefronts, product drops, newsletters, tickets, and subscriber capture for the audience layer of the AI agent world.",
+  "description": "DOOMSCROLLR MCP server — AI agents build owned-audience websites, affiliate storefronts, product drops, newsletters, tickets, and subscriber capture for the audience layer of the AI agent world.",
   "main": "dist/index.js",
   "bin": {
     "doomscrollr-mcp": "dist/index.js",
@@ -27,7 +27,21 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "ai"
+    "ai",
+    "ai-agents",
+    "ai-agent",
+    "agents",
+    "mcp",
+    "model-context-protocol",
+    "chatgpt",
+    "claude",
+    "openai",
+    "automation",
+    "owned-audience",
+    "creator-tools",
+    "ecommerce",
+    "shopify",
+    "doomscrollr"
   ],
   "author": "DOOMSCROLLR",
   "license": "MIT",

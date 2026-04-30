@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.22
+
+- Expanded npm keywords for AI-agent discovery (`ai`, `ai-agents`, MCP, ChatGPT, Claude, OpenAI, automation, ecommerce).
+
 ## 1.0.21
 
 - Shopify import post results now surface the direct DOOMSCROLLR product URL as `link_url`/`product_url` for both-mode imports.
