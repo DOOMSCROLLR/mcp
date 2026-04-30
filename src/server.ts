@@ -413,9 +413,9 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_scrape_shopify_products",
-    "Scrape a public Shopify storefront product feed without creating anything. Pass a Shopify homepage, collection URL, or /products.json URL. Returns normalized products, images, prices, variants, inventory hints, and source product URLs.",
+    "Scrape a public Shopify storefront product feed without creating anything. Pass a Shopify homepage, collection URL, or /products.json URL; compatible public product JSON feeds may work when they expose normal product fields. Returns normalized products, images, prices, variants, inventory hints, and source product URLs.",
     {
-      url: z.string().url().describe("Public Shopify store, collection, or products.json URL, e.g. https://shop.example.com or https://shop.example.com/collections/shirts"),
+      url: z.string().url().describe("Public Shopify store, collection, products.json URL, or compatible product JSON feed, e.g. https://shop.example.com or https://shop.example.com/collections/shirts"),
       limit: z.number().int().min(1).max(100).optional().describe("Maximum products to return. Default 50."),
     },
     async ({ url, limit }) => {
@@ -436,9 +436,9 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   server.registerTool(
     "doomscrollr_import_shopify_products",
     {
-      description: "Scrape a public Shopify storefront product feed and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts. When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page. Never append import attribution, source URLs, or phrases like 'Imported from... Original listing...' to product or post descriptions; source URLs belong only in metadata/tool results.",
+      description: "Scrape a public Shopify storefront product feed, or compatible public product JSON feed, and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, compatible product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts. When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page. Never append import attribution, source URLs, or phrases like 'Imported from... Original listing...' to product or post descriptions; source URLs belong only in metadata/tool results.",
       inputSchema: {
-        url: z.string().url().describe("Public Shopify store, collection, or products.json URL"),
+        url: z.string().url().describe("Public Shopify store, collection, products.json URL, or compatible product JSON feed"),
         mode: z.enum(["products", "posts", "both"]).describe("products = create DOOMSCROLLR products; posts = create feed posts linking to source Shopify products; both = do both"),
         limit: z.number().int().min(1).max(50).optional().describe("Maximum products to import. Default 20, max 50."),
         status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status when creating posts. Use draft unless the user clearly asked to publish now."),

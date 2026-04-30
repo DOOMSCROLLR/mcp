@@ -102,11 +102,11 @@ Turn these ShopMy links into draft affiliate recommendation posts and preserve c
 ```
 
 ```text
-Scrape https://labananita.com and import the first 20 Shopify products as DOOMSCROLLR products.
+Scrape https://labananita.com and import the first 20 Shopify/compatible product-feed products as DOOMSCROLLR products.
 ```
 
 ```text
-Before importing this Shopify catalog, ask me whether I want products, posts, or both.
+Before importing this Shopify catalog or compatible product JSON feed, ask me whether I want products, posts, or both.
 ```
 
 ```text
