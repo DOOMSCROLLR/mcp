@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.17
+## 1.0.18
 
 - Added first-class Shopify MCP scraping/import tools for public storefront product feeds.
 
