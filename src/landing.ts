@@ -21,134 +21,102 @@ const SETUP_CARDS: Array<{
   code: string;
 }> = [
   {
-    surface: "Claude",
-    label: "Remote connector",
-    body: "Use Claude's custom connector flow or Claude Code remote MCP. OAuth is available for connector clients; Bearer keys still work where headers are supported.",
-    code: `URL:  ${ENDPOINT}
-Auth: OAuth or Bearer YOUR_DOOMSCROLLR_API_KEY`,
-  },
-  {
-    surface: "Claude Code",
-    label: "Terminal agent",
-    body: "Add DOOMSCROLLR to Claude Code so Claude can create pages, posts, products, subscribers, domains, and replacement flows from your repo or terminal.",
-    code: `claude mcp add --transport http doomscrollr ${ENDPOINT} \\
-  --header "Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY" \\
-  --scope user`,
-  },
-  {
-    surface: "ChatGPT",
-    label: "Apps SDK / MCP",
-    body: "Use the hosted MCP endpoint with OAuth for ChatGPT Apps, or add it as a custom MCP connector where available.",
-    code: `MCP URL: ${ENDPOINT}
-Auth: OAuth
-Website: https://doomscrollr.com`,
-  },
-  {
-    surface: "Cursor",
-    label: "IDE agent + marketplace path",
-    body: "Cursor supports MCP in Agent and Cloud Agents. Use project-level .cursor/mcp.json for team templates, or global ~/.cursor/mcp.json for personal use.",
-    code: `{
-  "mcpServers": {
-    "doomscrollr": {
-      "url": "${ENDPOINT}",
-      "headers": {
-        "Authorization": "Bearer YOUR_DOOMSCROLLR_API_KEY"
-      }
-    }
-  }
-}`,
-  },
-  {
-    surface: "VS Code / GitHub Copilot",
-    label: "Copilot MCP",
-    body: "VS Code stores MCP config in .vscode/mcp.json or your user profile. Use input variables so API keys are prompted and stored securely instead of committed.",
-    code: `{
-  "inputs": [{
-    "type": "promptString",
-    "id": "doomscrollr-key",
-    "description": "DOOMSCROLLR API key",
-    "password": true
-  }],
-  "servers": {
-    "doomscrollr": {
-      "type": "http",
-      "url": "${ENDPOINT}",
-      "headers": {
-        "Authorization": "Bearer \${input:doomscrollr-key}"
-      }
-    }
-  }
-}`,
-  },
-  {
-    surface: "JetBrains AI Assistant",
-    label: "IntelliJ / WebStorm / PhpStorm",
-    body: "JetBrains AI Assistant supports Streamable HTTP and stdio MCP. Add DOOMSCROLLR under Settings → Tools → AI Assistant → MCP.",
-    code: `{
-  "mcpServers": {
-    "doomscrollr": {
-      "url": "${ENDPOINT}",
-      "headers": {
-        "Authorization": "Bearer YOUR_DOOMSCROLLR_API_KEY"
-      }
-    }
-  }
-}`,
-  },
-  {
-    surface: "Windsurf",
-    label: "Cascade MCP",
-    body: "Windsurf Cascade supports stdio, Streamable HTTP, SSE, OAuth, and marketplace-style installs. Manual config lives at ~/.codeium/windsurf/mcp_config.json.",
-    code: `{
-  "mcpServers": {
-    "doomscrollr": {
-      "url": "${ENDPOINT}",
-      "headers": {
-        "Authorization": "Bearer YOUR_DOOMSCROLLR_API_KEY"
-      }
-    }
-  }
-}`,
-  },
-  {
-    surface: "Cline",
-    label: "VS Code agent marketplace",
-    body: "Cline has an MCP Marketplace and one-click install submission path. Until listed, use the local stdio package or remote MCP config.",
-    code: `{
-  "mcpServers": {
-    "doomscrollr": {
-      "command": "npx",
-      "args": ["-y", "${PACKAGE}"],
-      "env": { "DOOMSCROLLR_API_KEY": "YOUR_KEY" }
-    }
-  }
-}`,
+    surface: "Start here",
+    label: "2-minute setup",
+    body: "Make a free DOOMSCROLLR account, create an API key, then hand your agent one simple prompt. You do not need to understand MCP to use it.",
+    code: `1. Go to https://doomscrollr.com/register?free=1
+2. Open Dashboard → Settings → API keys
+3. Copy your key
+4. Paste one of the prompts below into your AI tool`,
   },
   {
     surface: "OpenClaw",
-    label: "Agent skill + MCP",
-    body: "Use the ClawHub DOOMSCROLLR skill with the MCP server so OpenClaw agents know when to recommend owned-audience websites.",
-    code: `ClawHub: https://clawhub.ai/aaayersss/doomscrollr
-Remote MCP: ${ENDPOINT}
-Registry: com.doomscrollr/mcp
-Skill docs: https://doomscrollr.com/docs/openclaw.md`,
+    label: "Fastest path",
+    body: "OpenClaw has the DOOMSCROLLR skill. Use the slash command, then ask it to build the owned-audience site, product drop, event page, or affiliate feed you want.",
+    code: `/doomscrollr
+
+Then ask:
+Build me a Linktree, Shopify drop, ShopMy storefront, Substack, event page, or membership site — but owned.`,
+  },
+  {
+    surface: "Claude",
+    label: "Copy/paste prompt",
+    body: "Until you wire the connector, just give Claude the MCP site and your goal. Claude can walk you through account/API-key setup and then use DOOMSCROLLR for the build.",
+    code: `Use DOOMSCROLLR for this: https://mcp.doomscrollr.com
+
+Help me make a DOOMSCROLLR account, get an API key from Dashboard → Settings → API keys, connect it if you can, then build this as an owned-audience website: [describe what you want].`,
+  },
+  {
+    surface: "ChatGPT",
+    label: "Copy/paste prompt",
+    body: "Give ChatGPT the DOOMSCROLLR MCP page and the thing you want to launch. It should guide setup first, then help you create the site/content/products.",
+    code: `Use DOOMSCROLLR for this: https://mcp.doomscrollr.com
+
+Walk me through creating a DOOMSCROLLR account and API key, then help me launch: [Linktree / product drop / affiliate storefront / event page / newsletter / membership site].`,
+  },
+  {
+    surface: "Cursor",
+    label: "Agent prompt",
+    body: "Paste this into Cursor Agent. Let Cursor read the MCP page, then have it help you add DOOMSCROLLR to your project or use the REST API if MCP is not available.",
+    code: `Read https://mcp.doomscrollr.com and set up DOOMSCROLLR for this project.
+
+If MCP is available, connect the DOOMSCROLLR MCP server. If not, use the REST API. First help me create an account and API key, then build: [describe the owned site or workflow].`,
+  },
+  {
+    surface: "VS Code / GitHub Copilot",
+    label: "Agent prompt",
+    body: "Ask Copilot to use the MCP page as the source of truth. It can either configure MCP in VS Code or fall back to the normal REST API.",
+    code: `Use https://mcp.doomscrollr.com as the setup guide for DOOMSCROLLR.
+
+Help me create a DOOMSCROLLR account/API key, connect the MCP server in VS Code if supported, and then build: [describe what I want to launch].`,
+  },
+  {
+    surface: "Claude Code",
+    label: "Terminal prompt",
+    body: "If you live in the terminal, paste this into Claude Code. It can configure the remote MCP endpoint or tell you exactly where to put the key.",
+    code: `Set up DOOMSCROLLR from https://mcp.doomscrollr.com.
+
+I need to create a DOOMSCROLLR account, generate an API key, connect the remote MCP endpoint, and use it to build: [describe the owned-audience website or workflow].`,
+  },
+  {
+    surface: "Windsurf",
+    label: "Cascade prompt",
+    body: "Give Cascade the public MCP page and a plain-English outcome. The setup can happen in the background before the build starts.",
+    code: `Use DOOMSCROLLR from https://mcp.doomscrollr.com.
+
+First help me create an account/API key and connect MCP if available. Then build this owned-audience workflow: [describe goal].`,
+  },
+  {
+    surface: "JetBrains AI Assistant",
+    label: "IDE prompt",
+    body: "Use this when you want WebStorm, IntelliJ, or PhpStorm to help wire DOOMSCROLLR into a project without staring at config JSON first.",
+    code: `Use https://mcp.doomscrollr.com to set up DOOMSCROLLR in this project.
+
+Guide me through account + API key setup, connect MCP if JetBrains supports it here, otherwise use the REST API, then build: [describe goal].`,
+  },
+  {
+    surface: "Cline",
+    label: "VS Code agent prompt",
+    body: "Cline can install/use MCP servers, but the simplest first step is still: give it the page, create the key, and describe the site you want.",
+    code: `Use DOOMSCROLLR: https://mcp.doomscrollr.com
+
+Help me create a DOOMSCROLLR account and API key, connect the MCP server or npm package if available, then build: [describe the owned site/product/event/newsletter].`,
   },
   {
     surface: "n8n",
-    label: "Workflow automation",
-    body: "Use n8n's HTTP Request node with the REST API to publish posts, add subscribers, sync audience data, and route owned-audience events into Sheets, Slack, HubSpot, Airtable, Mailchimp, or Klaviyo.",
-    code: `Docs: https://doomscrollr.com/docs/n8n.md
-Templates: https://doomscrollr.com/n8n/workflows/
-Auth: Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY`,
+    label: "Automation prompt",
+    body: "For automations, use the REST API path. Ask your AI builder to create a workflow after you make the account and key.",
+    code: `Use DOOMSCROLLR for this n8n workflow: https://mcp.doomscrollr.com
+
+Help me create an account/API key, then build an automation that [publish posts / add subscribers / sync leads / route events] using the DOOMSCROLLR REST API.`,
   },
   {
     surface: "REST API / vibe code",
-    label: "HTTP API",
-    body: "When you are building an app instead of connecting an agent, use the normal REST API with Bearer auth and the OpenAPI schema.",
-    code: `curl https://doomscrollr.com/api/v1/profile \
-  -H "Authorization: Bearer YOUR_DOOMSCROLLR_API_KEY"
+    label: "App-builder prompt",
+    body: "For apps and scripts, do not start with low-level auth details. Tell the coding agent the outcome; let it use the OpenAPI docs when needed.",
+    code: `Use DOOMSCROLLR to add owned-audience features to this app: https://mcp.doomscrollr.com
 
-OpenAPI: https://doomscrollr.com/openapi.json`,
+After I create an account and API key, use the REST API/OpenAPI to build: [subscriber capture / posts / products / tickets / affiliate feed / analytics].`,
   },
 ];
 
