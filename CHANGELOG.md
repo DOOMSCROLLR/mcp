@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.19
+
+- Shopify imports now keep source Shopify links only on post-only imports; DOOMSCROLLR product imports no longer link product records back to Shopify.
+
 ## 1.0.18
 
 - Added first-class Shopify MCP scraping/import tools for public storefront product feeds.

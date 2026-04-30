@@ -9,7 +9,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.18",
+    version: "1.0.19",
   });
 
   registerWidgetResources(server);
@@ -1298,7 +1298,6 @@ function shopifyProductToDoomscrollrProduct(product: ShopifyScrapedProduct, ship
     price: product.price,
     type: "physical",
     cover_photo_url: product.image,
-    url: product.url,
     inventory_count: hasVariants ? undefined : (firstVariant?.inventory_count ?? 1),
     shipping_required: true,
     shipping_cost: shippingCost,
