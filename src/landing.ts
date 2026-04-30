@@ -169,7 +169,7 @@ const TOOL_GROUPS: Array<{ name: string; tools: string[] }> = [
   },
   {
     name: "Domains + integrations",
-    tools: ["search_domains", "connect_domain", "buy_domain", "domain_status", "search_pinterest", "search_pinterest_and_post", "connect_pinterest", "connect_rss"],
+    tools: ["search_domains", "connect_domain", "buy_domain", "domain_status", "search_pinterest", "search_pinterest_and_post", "scrape_shopify_products", "import_shopify_products", "connect_pinterest", "connect_rss"],
   },
 ];
 
@@ -471,7 +471,7 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP + API
 - Posts/pages: doomscrollr_publish_post, doomscrollr_publish_image_post, doomscrollr_post_shopmy_products, doomscrollr_list_posts, doomscrollr_update_post, doomscrollr_delete_post, doomscrollr_create_page, doomscrollr_create_contact_page
 - Commerce: doomscrollr_create_product, doomscrollr_list_products, doomscrollr_update_product, doomscrollr_delete_product (physical products, digital downloads, event tickets, courses, memberships, software/licenses, ebooks, templates, presets, services, coaching, subscriptions)
 - Audience: doomscrollr_add_subscriber, doomscrollr_update_subscriber, doomscrollr_list_subscribers, doomscrollr_remove_subscriber, doomscrollr_get_embed_code
-- Domains/integrations: doomscrollr_search_domains, doomscrollr_connect_domain, doomscrollr_buy_domain, doomscrollr_domain_status, doomscrollr_search_pinterest, doomscrollr_search_pinterest_and_post, doomscrollr_connect_pinterest, doomscrollr_connect_rss
+- Domains/integrations/imports: doomscrollr_search_domains, doomscrollr_connect_domain, doomscrollr_buy_domain, doomscrollr_domain_status, doomscrollr_search_pinterest, doomscrollr_search_pinterest_and_post, doomscrollr_scrape_shopify_products, doomscrollr_import_shopify_products, doomscrollr_connect_pinterest, doomscrollr_connect_rss
 
 ## Public docs
 - Claude: https://doomscrollr.com/docs/claude.md

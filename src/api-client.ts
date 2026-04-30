@@ -4,7 +4,7 @@
 
 const DEFAULT_BASE_URL = "https://doomscrollr.com/api/v1";
 const CLIENT_NAME = "@doomscrollr/mcp-server";
-const CLIENT_VERSION = "1.0.15";
+const CLIENT_VERSION = "1.0.17";
 
 export class DoomscrollrClient {
   private baseUrl: string;
@@ -343,6 +343,12 @@ export class DoomscrollrClient {
     type: string;
     cover_photo_url?: string;
     url?: string;
+    inventory_count?: number;
+    shipping_required?: boolean;
+    shipping_cost?: number;
+    sku?: string;
+    variant_options?: Array<{ name: string; values: string[] }>;
+    variants?: Array<{ variant_data: Record<string, string>; price: number; inventory_count: number; sku?: string }>;
   }) {
     return this.request("POST", "/products", params);
   }

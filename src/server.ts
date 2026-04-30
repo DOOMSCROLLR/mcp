@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { DoomscrollrClient } from "./api-client.js";
+import { scrapeShopifyProducts, type ShopifyScrapedProduct } from "./shopify.js";
 import { registerWidgetResources, widgetResult, widgetToolMeta } from "./widgets.js";
 
 export function createServer(apiKey: string, baseUrl?: string): McpServer {
@@ -8,7 +9,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.15",
+    version: "1.0.17",
   });
 
   registerWidgetResources(server);
@@ -25,6 +26,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       "doomscrollr_list_",
       "doomscrollr_show_",
       "doomscrollr_search_",
+      "doomscrollr_scrape_",
       "doomscrollr_export_",
     ];
     const readOnlyNames = new Set([
@@ -388,6 +390,115 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     async (params) => {
       const result = await client.searchPinterestAndPost(params as any);
       return widgetResult("pinterest", result);
+    }
+  );
+
+  server.tool(
+    "doomscrollr_scrape_shopify_products",
+    "Scrape a public Shopify storefront product feed without creating anything. Pass a Shopify homepage, collection URL, or /products.json URL. Returns normalized products, images, prices, variants, inventory hints, and source product URLs.",
+    {
+      url: z.string().url().describe("Public Shopify store, collection, or products.json URL, e.g. https://shop.example.com or https://shop.example.com/collections/shirts"),
+      limit: z.number().int().min(1).max(100).optional().describe("Maximum products to return. Default 50."),
+    },
+    async ({ url, limit }) => {
+      const result = await scrapeShopifyProducts(url, { limit });
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.registerTool(
+    "doomscrollr_import_shopify_products",
+    {
+      description: "Scrape a public Shopify storefront product feed and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts.",
+      inputSchema: {
+        url: z.string().url().describe("Public Shopify store, collection, or products.json URL"),
+        mode: z.enum(["products", "posts", "both"]).describe("products = create DOOMSCROLLR products; posts = create feed posts linking to source Shopify products; both = do both"),
+        limit: z.number().int().min(1).max(50).optional().describe("Maximum products to import. Default 20, max 50."),
+        status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status when creating posts. Use draft unless the user clearly asked to publish now."),
+        publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
+        tags: z.string().optional().describe("Comma-separated tags to attach to created posts"),
+        shipping_cost: z.number().min(0).optional().describe("Optional default shipping cost for created physical products"),
+      },
+      annotations: toolAnnotationsFor("doomscrollr_import_shopify_products"),
+      _meta: widgetToolMeta("product", "Importing Shopify products…", "Shopify products imported"),
+    },
+    async (params) => {
+      const url = String((params as any).url);
+      const mode = (params as any).mode as "products" | "posts" | "both";
+      const limit = Math.min(Math.max(Number((params as any).limit ?? 20), 1), 50);
+      const status = String((params as any).status ?? "draft");
+      const tags = (params as any).tags as string | undefined;
+      const publish_at = (params as any).publish_at as string | undefined;
+      const shipping_cost = typeof (params as any).shipping_cost === "number" ? (params as any).shipping_cost : undefined;
+
+      const scrape = await scrapeShopifyProducts(url, { limit });
+      const profile = await client.getProfile().catch(() => null) as Record<string, any> | null;
+      const createdProducts: any[] = [];
+      const createdPosts: any[] = [];
+      const skipped: Array<{ title: string; reason: string }> = [];
+
+      for (const product of scrape.products.slice(0, limit)) {
+        try {
+          let createdProduct: any | null = null;
+
+          if (mode === "products" || mode === "both") {
+            createdProduct = await client.createProduct(shopifyProductToDoomscrollrProduct(product, shipping_cost));
+            const productUrl = doomscrollrProductUrl(profile, createdProduct?.id);
+            createdProducts.push({
+              id: createdProduct?.id,
+              title: createdProduct?.title ?? product.title,
+              price: createdProduct?.price ?? product.price,
+              source_url: product.url,
+              product_url: productUrl,
+              share_url: productUrl,
+            });
+          }
+
+          if (mode === "posts" || mode === "both") {
+            const postUrl = mode === "both"
+              ? (doomscrollrProductUrl(profile, createdProduct?.id) ?? product.url)
+              : product.url;
+            const post = await client.createLinkPost({
+              url: postUrl,
+              title: product.title,
+              description: product.description,
+              status,
+              publish_at,
+              tags,
+            });
+            createdPosts.push({
+              id: (post as any)?.id,
+              title: (post as any)?.title ?? product.title,
+              url: (post as any)?.url ?? postUrl,
+              source_url: product.url,
+            });
+          }
+        } catch (error) {
+          skipped.push({ title: product.title, reason: error instanceof Error ? error.message : String(error) });
+        }
+      }
+
+      const result = {
+        source_url: scrape.source_url,
+        feed_url: scrape.feed_url,
+        mode,
+        found: scrape.count,
+        processed: Math.min(scrape.products.length, limit),
+        created_products_count: createdProducts.length,
+        created_posts_count: createdPosts.length,
+        skipped_count: skipped.length,
+        products: createdProducts,
+        posts: createdPosts,
+        skipped,
+      };
+
+      return widgetResult("product", result, {
+        status: "shopify_import_complete",
+        mode,
+        created_products_count: createdProducts.length,
+        created_posts_count: createdPosts.length,
+        skipped_count: skipped.length,
+      });
     }
   );
 
@@ -1175,4 +1286,38 @@ Key message: Instagram followers are rented. DOOMSCROLLR subscribers are owned. 
   );
 
   return server;
+}
+
+function shopifyProductToDoomscrollrProduct(product: ShopifyScrapedProduct, shippingCost?: number) {
+  const hasVariants = product.variant_options.length > 0 && product.variants.length > 1;
+  const firstVariant = product.variants[0];
+
+  return {
+    title: product.title,
+    description: product.description,
+    price: product.price,
+    type: "physical",
+    cover_photo_url: product.image,
+    url: product.url,
+    inventory_count: hasVariants ? undefined : (firstVariant?.inventory_count ?? 1),
+    shipping_required: true,
+    shipping_cost: shippingCost,
+    sku: hasVariants ? undefined : firstVariant?.sku,
+    variant_options: hasVariants ? product.variant_options : undefined,
+    variants: hasVariants
+      ? product.variants.map((variant) => ({
+          variant_data: variant.variant_data,
+          price: variant.price,
+          inventory_count: variant.inventory_count,
+          sku: variant.sku,
+        }))
+      : undefined,
+  };
+}
+
+function doomscrollrProductUrl(profile: Record<string, any> | null, id: unknown): string | undefined {
+  if (!id) return undefined;
+  const host = profile?.custom_domain || profile?.url || (profile?.username ? `${profile.username}.doomscrollr.com` : undefined);
+  if (!host) return undefined;
+  return `https://${host}/products/${Buffer.from(String(id)).toString("base64")}`;
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.17
+
+- Added first-class Shopify MCP scraping/import tools for public storefront product feeds.
+
 ## 1.0.16
 
 - Rewrite README as an AI-agent marketplace landing page.

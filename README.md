@@ -85,7 +85,7 @@ All tools are namespaced `doomscrollr_*`.
 | Build-me flows | `build_linktree`, `build_komi`, `build_shopify`, `build_ecommerce`, `build_substack`, `build_newsletter`, `build_website`, `build_social_feed`, `build_membership` |
 | Account/settings | `create_world`, `get_profile`, `get_settings`, `update_settings`, `apply_style_preset` |
 | Posts/pages | `publish_post`, `publish_image_post`, `post_shopmy_products`, `list_posts`, `update_post`, `delete_post`, `create_page`, `create_contact_page` |
-| Commerce | `create_product`, `list_products`, `update_product`, `delete_product`, bulk product tools |
+| Commerce | `create_product`, `list_products`, `scrape_shopify_products`, `import_shopify_products`, `update_product`, `delete_product`, bulk product tools |
 | Audience | `add_subscriber`, `update_subscriber`, `list_subscribers`, `remove_subscriber`, `export_audience_csv`, bulk subscriber tools |
 | Domains | `search_domains`, `connect_domain`, `disconnect_domain`, `buy_domain`, `domain_status` |
 | Pinterest/RSS | `search_pinterest`, `search_pinterest_and_post`, `connect_pinterest`, `pinterest_status`, `disconnect_pinterest`, `connect_rss`, `rss_status`, `disconnect_rss` |
@@ -99,6 +99,10 @@ Build me a Linktree, but owned. Use my brand colors and add subscriber capture.
 
 ```text
 Turn these ShopMy links into draft affiliate recommendation posts and preserve commission URLs.
+```
+
+```text
+Scrape https://labananita.com and import the first 20 Shopify products as DOOMSCROLLR products.
 ```
 
 ```text
