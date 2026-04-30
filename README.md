@@ -83,7 +83,7 @@ All tools are namespaced `doomscrollr_*`.
 | Category | Tools |
 |---|---|
 | Build-me flows | `build_linktree`, `build_komi`, `build_shopify`, `build_ecommerce`, `build_substack`, `build_newsletter`, `build_website`, `build_social_feed`, `build_membership` |
-| Account/settings | `create_world`, `get_profile`, `get_settings`, `update_settings`, `apply_style_preset` |
+| Account/settings | `create_world`, `get_profile`, `get_settings`, `update_settings`, `apply_style_preset`, `prepare_user_questions` |
 | Posts/pages | `publish_post`, `publish_image_post`, `post_shopmy_products`, `list_posts`, `update_post`, `delete_post`, `create_page`, `create_contact_page` |
 | Commerce | `create_product`, `list_products`, `scrape_shopify_products`, `import_shopify_products`, `update_product`, `delete_product`, bulk product tools |
 | Audience | `add_subscriber`, `update_subscriber`, `list_subscribers`, `remove_subscriber`, `export_audience_csv`, bulk subscriber tools |
@@ -103,6 +103,10 @@ Turn these ShopMy links into draft affiliate recommendation posts and preserve c
 
 ```text
 Scrape https://labananita.com and import the first 20 Shopify products as DOOMSCROLLR products.
+```
+
+```text
+Before importing this Shopify catalog, ask me whether I want products, posts, or both.
 ```
 
 ```text

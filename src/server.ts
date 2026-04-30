@@ -9,7 +9,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.19",
+    version: "1.0.20",
   });
 
   registerWidgetResources(server);
@@ -35,6 +35,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       "doomscrollr_rss_status",
       "doomscrollr_top_liked_posts",
       "doomscrollr_get_n8n_templates",
+      "doomscrollr_prepare_user_questions",
     ]);
     const writeNames = new Set([
       "doomscrollr_search_pinterest_and_post",
@@ -107,6 +108,23 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   // ═══════════════════════════════════════════════════════════
   // TOOLS
   // ═══════════════════════════════════════════════════════════
+
+  server.tool(
+    "doomscrollr_prepare_user_questions",
+    "Prepare clear options/questions for the end user before taking an action. Use this when a DOOMSCROLLR workflow needs a human choice (for example products vs posts vs both, draft vs publish, domain choice, style direction, or missing required setup details). Return the questions to the user and wait for their answer before calling write tools.",
+    {
+      context: z.enum(["shopify_import", "product_drop", "domain", "style", "audience_capture", "replacement_flow", "generic"]).describe("Workflow context for the decision prompt"),
+      goal: z.string().optional().describe("What the user is trying to accomplish, in plain language"),
+      details: z.record(z.string(), z.unknown()).optional().describe("Known facts such as source URL, product count, brand name, or candidate domains"),
+    },
+    async ({ context, goal, details }) => {
+      const result = userQuestionsFor(context, goal, details ?? {});
+      return {
+        structuredContent: result,
+        content: [{ type: "text", text: formatUserQuestions(result) }],
+      };
+    }
+  );
 
   server.tool(
     "doomscrollr_create_world",
@@ -402,7 +420,16 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     },
     async ({ url, limit }) => {
       const result = await scrapeShopifyProducts(url, { limit });
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      const questions = userQuestionsFor("shopify_import", "Import products from this public Shopify feed", {
+        source_url: result.source_url,
+        feed_url: result.feed_url,
+        product_count: result.count,
+      });
+      const payload = { ...result, suggested_user_questions: questions };
+      return {
+        structuredContent: payload,
+        content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      };
     }
   );
 
@@ -1319,4 +1346,190 @@ function doomscrollrProductUrl(profile: Record<string, any> | null, id: unknown)
   const host = profile?.custom_domain || profile?.url || (profile?.username ? `${profile.username}.doomscrollr.com` : undefined);
   if (!host) return undefined;
   return `https://${host}/products/${Buffer.from(String(id)).toString("base64")}`;
+}
+
+type UserQuestionOption = {
+  label: string;
+  value: string;
+  description?: string;
+  recommended?: boolean;
+};
+
+type UserQuestion = {
+  id: string;
+  question: string;
+  type: "single_choice" | "multi_choice" | "free_text" | "number";
+  required: boolean;
+  options?: UserQuestionOption[];
+  default?: string | number | boolean;
+};
+
+type UserQuestionPayload = {
+  action: "ask_user";
+  context: string;
+  goal?: string;
+  summary: string;
+  questions: UserQuestion[];
+  suggested_reply: string;
+};
+
+function userQuestionsFor(context: string, goal?: string, details: Record<string, unknown> = {}): UserQuestionPayload {
+  const productCount = typeof details.product_count === "number" ? details.product_count : undefined;
+  const sourceUrl = typeof details.source_url === "string" ? details.source_url : undefined;
+
+  if (context === "shopify_import") {
+    const summary = `I found${productCount ? ` ${productCount}` : ""} Shopify product${productCount === 1 ? "" : "s"}${sourceUrl ? ` from ${sourceUrl}` : ""}.`;
+    const questions: UserQuestion[] = [
+      {
+        id: "mode",
+        question: "What should I create from these products?",
+        type: "single_choice",
+        required: true,
+        default: "products",
+        options: [
+          { label: "DOOMSCROLLR products", value: "products", description: "Create sellable products on DOOMSCROLLR. Do not link product records back to Shopify.", recommended: true },
+          { label: "Feed posts only", value: "posts", description: "Create posts that link back to the original Shopify products." },
+          { label: "Both", value: "both", description: "Create DOOMSCROLLR products, then create posts linking to the new DOOMSCROLLR product pages." },
+        ],
+      },
+      {
+        id: "limit",
+        question: "How many products should I import?",
+        type: "number",
+        required: false,
+        default: Math.min(productCount ?? 20, 20),
+      },
+      {
+        id: "status",
+        question: "If I create posts, should they be drafts or published?",
+        type: "single_choice",
+        required: false,
+        default: "draft",
+        options: [
+          { label: "Draft", value: "draft", recommended: true },
+          { label: "Publish now", value: "published" },
+        ],
+      },
+    ];
+
+    return {
+      action: "ask_user",
+      context,
+      goal,
+      summary,
+      questions,
+      suggested_reply: `${summary}\n\nWhat should I do?\n1. Create DOOMSCROLLR products\n2. Create feed posts linking to Shopify\n3. Both — products plus posts linking to the new DOOMSCROLLR product pages`,
+    };
+  }
+
+  if (context === "domain") {
+    const candidates = Array.isArray(details.candidates) ? details.candidates.map(String).slice(0, 5) : [];
+    return {
+      action: "ask_user",
+      context,
+      goal,
+      summary: "A domain choice needs confirmation before connecting or purchasing.",
+      questions: [
+        {
+          id: "domain",
+          question: "Which domain should I use?",
+          type: candidates.length ? "single_choice" : "free_text",
+          required: true,
+          options: candidates.map((domain, index) => ({ label: domain, value: domain, recommended: index === 0 })),
+        },
+        {
+          id: "action",
+          question: "Should I connect an existing domain or prepare a purchase?",
+          type: "single_choice",
+          required: true,
+          options: [
+            { label: "Connect existing domain", value: "connect", recommended: true },
+            { label: "Prepare purchase", value: "buy" },
+          ],
+        },
+      ],
+      suggested_reply: "Which domain should I use, and are we connecting an existing domain or preparing a purchase?",
+    };
+  }
+
+  if (context === "style") {
+    return {
+      action: "ask_user",
+      context,
+      goal,
+      summary: "A style direction needs a quick preference before changing the site.",
+      questions: [
+        {
+          id: "style_direction",
+          question: "What style should I apply?",
+          type: "single_choice",
+          required: true,
+          options: [
+            { label: "Minimal luxury", value: "minimal_luxury" },
+            { label: "Bold editorial", value: "bold_editorial", recommended: true },
+            { label: "Clean ecommerce", value: "clean_ecommerce" },
+            { label: "Custom — I’ll describe it", value: "custom" },
+          ],
+        },
+      ],
+      suggested_reply: "Which style direction should I use: minimal luxury, bold editorial, clean ecommerce, or something custom?",
+    };
+  }
+
+  if (context === "product_drop") {
+    return {
+      action: "ask_user",
+      context,
+      goal,
+      summary: "I need a couple product details before creating a sellable drop.",
+      questions: [
+        { id: "price", question: "What price should I use?", type: "free_text", required: true },
+        {
+          id: "product_type",
+          question: "What kind of product is it?",
+          type: "single_choice",
+          required: true,
+          options: [
+            { label: "Physical", value: "physical", recommended: true },
+            { label: "Digital download", value: "digital" },
+            { label: "Ticket/event", value: "ticket" },
+            { label: "Subscription", value: "subscription" },
+          ],
+        },
+      ],
+      suggested_reply: "What price and product type should I use?",
+    };
+  }
+
+  return {
+    action: "ask_user",
+    context,
+    goal,
+    summary: "I need one choice from the user before continuing.",
+    questions: [
+      {
+        id: "next_step",
+        question: "What should I do next?",
+        type: "free_text",
+        required: true,
+      },
+    ],
+    suggested_reply: "What should I do next?",
+  };
+}
+
+function formatUserQuestions(payload: UserQuestionPayload): string {
+  const lines = [payload.summary, ""];
+  for (const question of payload.questions) {
+    lines.push(question.question);
+    if (question.options?.length) {
+      question.options.forEach((option, index) => {
+        lines.push(`${index + 1}. ${option.label}${option.recommended ? " (recommended)" : ""}${option.description ? ` — ${option.description}` : ""}`);
+      });
+    } else if (question.default !== undefined) {
+      lines.push(`Default: ${question.default}`);
+    }
+    lines.push("");
+  }
+  return lines.join("\n").trim();
 }
