@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.21
+
+- Shopify import post results now surface the direct DOOMSCROLLR product URL as `link_url`/`product_url` for both-mode imports.
+
 ## 1.0.20
 
 - Added `doomscrollr_prepare_user_questions` for structured end-user decision prompts.

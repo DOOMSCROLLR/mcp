@@ -3,7 +3,7 @@
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
   "description": "AI agents build owned-audience sites: posts, products, subscribers, RSS, Pinterest, and tickets.",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "repository": {
     "url": "https://github.com/DOOMSCROLLR/mcp",
     "source": "github"
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@doomscrollr/mcp-server",
-      "version": "1.0.20",
+      "version": "1.0.21",
       "transport": {
         "type": "stdio"
       },

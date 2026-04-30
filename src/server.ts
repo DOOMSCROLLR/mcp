@@ -9,7 +9,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.20",
+    version: "1.0.21",
   });
 
   registerWidgetResources(server);
@@ -436,7 +436,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
   server.registerTool(
     "doomscrollr_import_shopify_products",
     {
-      description: "Scrape a public Shopify storefront product feed and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts.",
+      description: "Scrape a public Shopify storefront product feed and create DOOMSCROLLR products, feed posts, or both. Use when the user asks to pull/import/copy products from a Shopify store, product feed, or collection. Prefer mode='products' for storefront imports, mode='posts' for feed/content posts, and mode='both' when they want sellable DOOMSCROLLR products plus posts. When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page.",
       inputSchema: {
         url: z.string().url().describe("Public Shopify store, collection, or products.json URL"),
         mode: z.enum(["products", "posts", "both"]).describe("products = create DOOMSCROLLR products; posts = create feed posts linking to source Shopify products; both = do both"),
@@ -497,6 +497,8 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
               id: (post as any)?.id,
               title: (post as any)?.title ?? product.title,
               url: (post as any)?.url ?? postUrl,
+              link_url: postUrl,
+              product_url: mode === "both" ? postUrl : undefined,
               source_url: product.url,
             });
           }
