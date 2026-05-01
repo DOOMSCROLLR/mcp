@@ -1,0 +1,27 @@
+{
+  "name": "doomscrollr",
+  "version": "1.0.23",
+  "description": "Build owned-audience websites: pages, posts, products, subscribers, ShopMy/Shopify imports, tickets, memberships, RSS/Pinterest, and analytics — from any AI agent.",
+  "author": {
+    "name": "DOOMSCROLLR",
+    "url": "https://doomscrollr.com"
+  },
+  "homepage": "https://mcp.doomscrollr.com",
+  "repository": "https://github.com/DOOMSCROLLR/mcp",
+  "license": "MIT",
+  "keywords": [
+    "doomscrollr",
+    "mcp",
+    "owned-audience",
+    "creator-tools",
+    "linktree-alternative",
+    "shopify-alternative",
+    "shopmy",
+    "ltk",
+    "substack-alternative",
+    "eventbrite-alternative",
+    "gumroad-alternative",
+    "ai-agents"
+  ],
+  "mcpServers": "./.mcp.json"
+}

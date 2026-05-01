@@ -2,13 +2,19 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
-  "description": "AI agents build owned-audience sites: posts, products, subscribers, RSS, Pinterest, and tickets.",
+  "description": "Build owned-audience websites: pages, posts, products, subscribers, ShopMy/Shopify imports.",
   "version": "1.0.23",
   "repository": {
     "url": "https://github.com/DOOMSCROLLR/mcp",
     "source": "github"
   },
   "websiteUrl": "https://mcp.doomscrollr.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.doomscrollr.com/mcp"
+    }
+  ],
   "packages": [
     {
       "registryType": "npm",
@@ -20,43 +26,12 @@
       "environmentVariables": [
         {
           "name": "DOOMSCROLLR_API_KEY",
-          "description": "Your DOOMSCROLLR API key. Get one free at https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
+          "description": "Your DOOMSCROLLR API key (Dashboard → Settings → API keys at doomscrollr.com).",
           "isRequired": true,
           "isSecret": true,
-          "format": "string"
-        },
-        {
-          "name": "DOOMSCROLLR_API_BASE",
-          "description": "Optional API base URL override. Defaults to https://doomscrollr.com/api/v1.",
-          "isRequired": false,
-          "isSecret": false,
           "format": "string"
         }
       ]
-    }
-  ],
-  "remotes": [
-    {
-      "type": "streamable-http",
-      "url": "https://mcp.doomscrollr.com/mcp",
-      "headers": [
-        {
-          "name": "Authorization",
-          "description": "Bearer DOOMSCROLLR_API_KEY (get one at https://doomscrollr.com/dashboard)",
-          "isRequired": true,
-          "isSecret": true,
-          "format": "string",
-          "value": "Bearer {DOOMSCROLLR_API_KEY}"
-        }
-      ],
-      "variables": {
-        "DOOMSCROLLR_API_KEY": {
-          "description": "Your DOOMSCROLLR API key from https://doomscrollr.com/dashboard (Settings \u2192 API keys).",
-          "isRequired": true,
-          "isSecret": true,
-          "format": "string"
-        }
-      }
     }
   ]
 }
