@@ -139,6 +139,7 @@ export class DoomscrollrClient {
     tags?: string;
     status?: string;
     publish_at?: string;
+    shoppable?: boolean;
   }) {
     return this.request("POST", "/posts", params);
   }
@@ -150,6 +151,7 @@ export class DoomscrollrClient {
     tags?: string;
     status?: string;
     publish_at?: string;
+    shoppable?: boolean;
   }) {
     return this.request("POST", "/posts/image", params);
   }

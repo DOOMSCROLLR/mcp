@@ -153,7 +153,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_publish_post",
-    "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers.",
+    "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers. Set shoppable=true to show a buy button for product/commerce links.",
     {
       url: z.string().url().describe("URL to share"),
       title: z.string().optional().describe("Post title"),
@@ -161,6 +161,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       tags: z.string().optional().describe("Comma-separated tags"),
       status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
       publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
+      shoppable: z.boolean().optional().describe("Show a buy button on this post. Use true for product/Shopify/commerce links when the user asks for buy buttons."),
     },
     async (params) => {
       const result = await client.createLinkPost(params);
@@ -200,6 +201,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       tags: z.string().optional().describe("Comma-separated tags"),
       status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
       publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
+      shoppable: z.boolean().optional().describe("Show a buy button on this post."),
     },
     async (params) => {
       const result = await client.createImagePost(params);
@@ -444,6 +446,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
         status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status when creating posts. Use draft unless the user clearly asked to publish now."),
         publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
         tags: z.string().optional().describe("Comma-separated tags to attach to created posts"),
+        shoppable: z.boolean().optional().describe("When creating posts that link to source Shopify products, turn on the feed buy button."),
         shipping_cost: z.number().min(0).optional().describe("Optional default shipping cost for created physical products"),
       },
       annotations: toolAnnotationsFor("doomscrollr_import_shopify_products"),
@@ -457,6 +460,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       const tags = (params as any).tags as string | undefined;
       const publish_at = (params as any).publish_at as string | undefined;
       const shipping_cost = typeof (params as any).shipping_cost === "number" ? (params as any).shipping_cost : undefined;
+      const shoppable = typeof (params as any).shoppable === "boolean" ? (params as any).shoppable : false;
 
       const scrape = await scrapeShopifyProducts(url, { limit });
       const profile = await client.getProfile().catch(() => null) as Record<string, any> | null;
@@ -492,6 +496,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
               status,
               publish_at,
               tags,
+              shoppable,
             });
             createdPosts.push({
               id: (post as any)?.id,
@@ -858,7 +863,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_update_post",
-    "Update a post — change its title, description, publish status, or tags. Only fields you pass are changed; omitted fields stay as they were. Use doomscrollr_list_posts to find the id.",
+    "Update a post — change its title, description, publish status, tags, or shoppable buy-button state. Only fields you pass are changed; omitted fields stay as they were. Use doomscrollr_list_posts to find the id.",
     {
       id: z.number().describe("Post id. Get this from doomscrollr_list_posts."),
       title: z.string().optional().describe("New post title."),
@@ -866,6 +871,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       status: z.enum(["published", "draft", "scheduled"]).optional().describe("Set to published, draft, or scheduled."),
       publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication."),
       tags: z.string().optional().describe("Comma-separated tags, e.g. 'sneakers,hype,summer'. Replaces existing tags."),
+      shoppable: z.boolean().optional().describe("Set true to show the buy button, false to hide it."),
     },
     async ({ id, ...params }) => {
       const result = await client.updatePost(id, params);
@@ -925,7 +931,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_bulk_update_posts",
-    "Bulk update up to 100 posts by id. Supports status/scheduling, feed flags, and tag replace/append/remove.",
+    "Bulk update up to 100 posts by id. Supports status/scheduling, feed flags, tag replace/append/remove, and shoppable buy-button state.",
     {
       ids: z.array(z.number()).min(1).max(100).describe("Post ids from doomscrollr_list_posts"),
       title: z.string().optional().describe("Shared replacement title for all selected posts"),
@@ -936,6 +942,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       tag_mode: z.enum(["replace", "append", "remove"]).optional().describe("How to apply tags; default replace"),
       hide_main_feed: z.boolean().optional().describe("Hide/show all selected posts on main feed"),
       subscription_only: z.boolean().optional().describe("Make all selected posts subscriber-only or public"),
+      shoppable: z.boolean().optional().describe("Set true to show the buy button on all selected posts, false to hide it."),
     },
     async (params) => {
       const result = await client.bulkUpdatePosts(params);
