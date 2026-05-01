@@ -23,6 +23,9 @@ export type ShopifyScrapedProduct = {
   price_max: number;
   variant_options: Array<{ name: string; values: string[] }>;
   variants: ShopifyScrapedVariant[];
+  created_at?: string;
+  updated_at?: string;
+  published_at?: string;
 };
 
 export type ShopifyScrapeResult = {
@@ -31,6 +34,7 @@ export type ShopifyScrapeResult = {
   store_url: string;
   count: number;
   products: ShopifyScrapedProduct[];
+  source_order?: "product_feed" | "shopify_collection_page";
 };
 
 type RawShopifyProduct = Record<string, any>;
@@ -44,6 +48,7 @@ const USER_AGENT = "Mozilla/5.0 (compatible; DOOMSCROLLR Shopify scraper; +https
 export async function scrapeShopifyProducts(sourceUrl: string, options: ScrapeOptions = {}): Promise<ShopifyScrapeResult> {
   const url = parseHttpUrl(sourceUrl);
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 250);
+  const collectionHandles = await shopifyCollectionProductHandles(url, limit);
   const candidates = shopifyFeedCandidates(url, limit);
 
   for (const candidate of candidates) {
@@ -64,11 +69,18 @@ export async function scrapeShopifyProducts(sourceUrl: string, options: ScrapeOp
           ? json
           : [];
 
-      const products = rawProducts
+      let products = rawProducts
         .filter((product: unknown): product is RawShopifyProduct => !!product && typeof product === "object")
         .map((product: RawShopifyProduct) => normalizeShopifyProduct(product, candidate))
-        .filter((product: ShopifyScrapedProduct | null): product is ShopifyScrapedProduct => product !== null)
-        .slice(0, limit);
+        .filter((product: ShopifyScrapedProduct | null): product is ShopifyScrapedProduct => product !== null);
+
+      let sourceOrder: ShopifyScrapeResult["source_order"] = "product_feed";
+      if (collectionHandles.length > 0) {
+        products = reorderProductsByHandles(products, collectionHandles);
+        sourceOrder = "shopify_collection_page";
+      }
+
+      products = products.slice(0, limit);
 
       if (products.length > 0) {
         return {
@@ -77,6 +89,7 @@ export async function scrapeShopifyProducts(sourceUrl: string, options: ScrapeOp
           store_url: `${candidate.protocol}//${candidate.host}`,
           count: products.length,
           products,
+          source_order: sourceOrder,
         };
       }
     } catch {
@@ -109,9 +122,8 @@ function shopifyFeedCandidates(url: URL, limit: number): URL[] {
   }
 
   const base = new URL(`${url.protocol}//${url.host}`);
-  add(new URL("/products.json", base));
-
   const cleanPath = url.pathname.replace(/\/$/, "");
+
   if (cleanPath.startsWith("/collections/") && !cleanPath.endsWith("/products.json")) {
     add(new URL(`${cleanPath}/products.json`, base));
   }
@@ -120,7 +132,56 @@ function shopifyFeedCandidates(url: URL, limit: number): URL[] {
     add(new URL(`${cleanPath}/products.json`, base));
   }
 
+  add(new URL("/products.json", base));
+
   return candidates;
+}
+
+async function shopifyCollectionProductHandles(url: URL, limit: number): Promise<string[]> {
+  const cleanPath = url.pathname.replace(/\/$/, "");
+  if (!cleanPath.startsWith("/collections/")) return [];
+
+  const handles: string[] = [];
+  const baseUrl = new URL(url.toString());
+  baseUrl.searchParams.delete("page");
+
+  for (let page = 1; page <= 10 && handles.length < limit; page += 1) {
+    const pageUrl = new URL(baseUrl.toString());
+    pageUrl.searchParams.set("page", String(page));
+
+    try {
+      const response = await fetch(pageUrl.toString(), {
+        headers: { Accept: "text/html,application/xhtml+xml,*/*", "User-Agent": USER_AGENT },
+      });
+      if (!response.ok) break;
+
+      const html = await response.text();
+      const pageHandles: string[] = [];
+      const regex = /href=["'](?:https?:\/\/[^/"']+)?\/products\/([^?"'#/<>]+)/gi;
+      for (const match of html.matchAll(regex)) {
+        const handle = decodeURIComponent(match[1] || "").trim();
+        if (handle && !handles.includes(handle) && !pageHandles.includes(handle)) {
+          pageHandles.push(handle);
+        }
+      }
+
+      if (pageHandles.length === 0) break;
+      handles.push(...pageHandles);
+    } catch {
+      break;
+    }
+  }
+
+  return handles.slice(0, limit);
+}
+
+function reorderProductsByHandles(products: ShopifyScrapedProduct[], handles: string[]): ShopifyScrapedProduct[] {
+  const byHandle = new Map(products.filter((product) => product.handle).map((product) => [product.handle, product]));
+  const ordered = handles
+    .map((handle) => byHandle.get(handle))
+    .filter((product): product is ShopifyScrapedProduct => Boolean(product));
+
+  return ordered.length > 0 ? ordered : products;
 }
 
 function normalizeShopifyProduct(product: RawShopifyProduct, feedUrl: URL): ShopifyScrapedProduct | null {
@@ -160,6 +221,9 @@ function normalizeShopifyProduct(product: RawShopifyProduct, feedUrl: URL): Shop
     price_max: priceMax,
     variant_options: variantOptions,
     variants,
+    created_at: stringValue(product.created_at) || undefined,
+    updated_at: stringValue(product.updated_at) || undefined,
+    published_at: stringValue(product.published_at) || undefined,
   };
 }
 

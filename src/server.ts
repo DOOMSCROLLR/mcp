@@ -447,6 +447,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
         publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
         tags: z.string().optional().describe("Comma-separated tags to attach to created posts"),
         shoppable: z.boolean().optional().describe("When creating posts that link to source Shopify products, turn on the feed buy button."),
+        display_order: z.enum(["source", "source_reversed", "newest_first", "oldest_first"]).optional().describe("Desired top-to-bottom order when creating posts. source preserves Shopify collection/page order; newest_first sorts by Shopify created_at. The importer creates posts bottom-to-top internally so the final DOOMSCROLLR feed displays correctly."),
         shipping_cost: z.number().min(0).optional().describe("Optional default shipping cost for created physical products"),
       },
       annotations: toolAnnotationsFor("doomscrollr_import_shopify_products"),
@@ -461,6 +462,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       const publish_at = (params as any).publish_at as string | undefined;
       const shipping_cost = typeof (params as any).shipping_cost === "number" ? (params as any).shipping_cost : undefined;
       const shoppable = typeof (params as any).shoppable === "boolean" ? (params as any).shoppable : false;
+      const displayOrder = String((params as any).display_order ?? "source") as "source" | "source_reversed" | "newest_first" | "oldest_first";
 
       const scrape = await scrapeShopifyProducts(url, { limit });
       const profile = await client.getProfile().catch(() => null) as Record<string, any> | null;
@@ -468,7 +470,13 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       const createdPosts: any[] = [];
       const skipped: Array<{ title: string; reason: string }> = [];
 
-      for (const product of scrape.products.slice(0, limit)) {
+      const createsFeedPosts = mode === "posts" || mode === "both";
+      let orderedProducts = orderShopifyProductsForImport(scrape.products, displayOrder).slice(0, limit);
+      if (createsFeedPosts) {
+        orderedProducts = orderedProducts.reverse();
+      }
+
+      for (const product of orderedProducts) {
         try {
           let createdProduct: any | null = null;
 
@@ -1322,6 +1330,38 @@ Key message: Instagram followers are rented. DOOMSCROLLR subscribers are owned. 
   );
 
   return server;
+}
+
+
+function orderShopifyProductsForImport(
+  products: ShopifyScrapedProduct[],
+  displayOrder: "source" | "source_reversed" | "newest_first" | "oldest_first"
+): ShopifyScrapedProduct[] {
+  let ordered = [...products];
+
+  if (displayOrder === "source_reversed") {
+    ordered.reverse();
+  } else if (displayOrder === "newest_first" || displayOrder === "oldest_first") {
+    ordered.sort((a, b) => {
+      const at = shopifyProductTimestamp(a);
+      const bt = shopifyProductTimestamp(b);
+      if (at === bt) return 0;
+      if (at === null) return 1;
+      if (bt === null) return -1;
+      return displayOrder === "newest_first" ? bt - at : at - bt;
+    });
+  }
+
+  return ordered;
+}
+
+function shopifyProductTimestamp(product: ShopifyScrapedProduct): number | null {
+  for (const value of [product.created_at, product.published_at, product.updated_at]) {
+    if (!value) continue;
+    const timestamp = Date.parse(value);
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return null;
 }
 
 function shopifyProductToDoomscrollrProduct(product: ShopifyScrapedProduct, shippingCost?: number) {
