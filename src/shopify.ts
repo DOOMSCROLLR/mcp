@@ -48,7 +48,10 @@ const USER_AGENT = "Mozilla/5.0 (compatible; DOOMSCROLLR Shopify scraper; +https
 export async function scrapeShopifyProducts(sourceUrl: string, options: ScrapeOptions = {}): Promise<ShopifyScrapeResult> {
   const url = parseHttpUrl(sourceUrl);
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 250);
-  const collectionHandles = await shopifyCollectionProductHandles(url, limit);
+  let collectionHandles = await shopifyCollectionProductHandles(url, limit);
+  if (collectionHandles.length === 0 && !url.pathname.replace(/\/$/, "").startsWith("/collections/")) {
+    collectionHandles = await shopifyCollectionProductHandles(new URL("/collections/all", `${url.protocol}//${url.host}`), limit);
+  }
   const candidates = shopifyFeedCandidates(url, limit);
 
   for (const candidate of candidates) {
@@ -124,6 +127,10 @@ function shopifyFeedCandidates(url: URL, limit: number): URL[] {
   const base = new URL(`${url.protocol}//${url.host}`);
   const cleanPath = url.pathname.replace(/\/$/, "");
 
+  if (/^\/collections\/(all|frontpage)$/i.test(cleanPath)) {
+    add(new URL("/products.json", base));
+  }
+
   if (cleanPath.startsWith("/collections/") && !cleanPath.endsWith("/products.json")) {
     add(new URL(`${cleanPath}/products.json`, base));
   }
@@ -177,11 +184,24 @@ async function shopifyCollectionProductHandles(url: URL, limit: number): Promise
 
 function reorderProductsByHandles(products: ShopifyScrapedProduct[], handles: string[]): ShopifyScrapedProduct[] {
   const byHandle = new Map(products.filter((product) => product.handle).map((product) => [product.handle, product]));
+  const seen = new Set<string>();
   const ordered = handles
-    .map((handle) => byHandle.get(handle))
+    .map((handle) => {
+      const product = byHandle.get(handle);
+      if (product) seen.add(handle);
+      return product;
+    })
     .filter((product): product is ShopifyScrapedProduct => Boolean(product));
 
-  return ordered.length > 0 ? ordered : products;
+  if (ordered.length === 0) return products;
+
+  for (const product of products) {
+    if (!product.handle || !seen.has(product.handle)) {
+      ordered.push(product);
+    }
+  }
+
+  return ordered;
 }
 
 function normalizeShopifyProduct(product: RawShopifyProduct, feedUrl: URL): ShopifyScrapedProduct | null {
