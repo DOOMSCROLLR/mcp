@@ -87,6 +87,36 @@ app.get("/.well-known/mcp", (_req, res) => {
   res.json(DISCOVERY_JSON);
 });
 
+app.get("/.well-known/mcp/server-card.json", (_req, res) => {
+  res.json({
+    serverInfo: { name: "doomscrollr", version: "1.0.23" },
+    authentication: { required: true, schemes: ["oauth2", "bearer"] },
+    transport: { type: "streamable-http", url: "https://mcp.doomscrollr.com/mcp" },
+    metadata: {
+      title: "DOOMSCROLLR",
+      description:
+        "Build owned-audience websites: pages, posts, products, subscribers, capture, RSS/Pinterest, ShopMy/Shopify imports, tickets, memberships, and analytics from any MCP client.",
+      vendor: "DOOMSCROLLR",
+      homepage: "https://mcp.doomscrollr.com",
+      docs: "https://mcp.doomscrollr.com",
+      repository: "https://github.com/DOOMSCROLLR/mcp",
+    },
+    tools: [],
+    resources: [],
+    prompts: [],
+  });
+});
+
+app.get("/.well-known/mcp-registry-auth", (_req, res) => {
+  // HTTP auth proof for the official MCP Registry. Public key only.
+  res
+    .type("text/plain")
+    .send(
+      process.env.MCP_REGISTRY_AUTH_RECORD ||
+        "v=MCPv1; k=ed25519; p=ACw/HxhiYuzDFvrn/pClu7N61pVaoivkp/6RdS6jTlM="
+    );
+});
+
 app.get("/.well-known/openai-apps-challenge", (_req, res) => {
   const token = process.env.OPENAI_APPS_CHALLENGE_TOKEN || "66K8q2ggOB94eP5nwf1CFnGE_SysqT_i-pCe-TGu0dM";
   res.type("text/plain").send(token);
