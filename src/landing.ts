@@ -129,7 +129,7 @@ const INTEGRATIONS: Array<{
 }> = [
   {
     name: "OpenClaw / ClawHub",
-    status: "Live · v1.0.7 · scans benign",
+    status: "Live · v1.0.7",
     href: "https://clawhub.ai/aaayersss/doomscrollr",
     body: "Install the DOOMSCROLLR AgentSkill so OpenClaw agents know how to publish posts, manage audiences, create products, connect feeds, and use the MCP/API safely.",
   },
