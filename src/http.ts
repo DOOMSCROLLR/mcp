@@ -87,7 +87,26 @@ app.get("/.well-known/mcp", (_req, res) => {
   res.json(DISCOVERY_JSON);
 });
 
+// Try to load a build-time generated server card with full input schemas.
+let generatedServerCard: Record<string, unknown> | null = null;
+try {
+  const cardPath = require.resolve("../dist/server-card.json");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  generatedServerCard = require(cardPath);
+} catch {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    generatedServerCard = require("./server-card.json");
+  } catch {
+    generatedServerCard = null;
+  }
+}
+
 app.get("/.well-known/mcp/server-card.json", (_req, res) => {
+  if (generatedServerCard) {
+    res.json(generatedServerCard);
+    return;
+  }
   res.json({
     serverInfo: { name: "doomscrollr", version: "1.0.24" },
     authentication: { required: true, schemes: ["oauth2", "bearer"] },
