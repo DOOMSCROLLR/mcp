@@ -89,7 +89,7 @@ app.get("/.well-known/mcp", (_req, res) => {
 
 app.get("/.well-known/mcp/server-card.json", (_req, res) => {
   res.json({
-    serverInfo: { name: "doomscrollr", version: "1.0.23" },
+    serverInfo: { name: "doomscrollr", version: "1.0.24" },
     authentication: { required: true, schemes: ["oauth2", "bearer"] },
     transport: { type: "streamable-http", url: "https://mcp.doomscrollr.com/mcp" },
     metadata: {

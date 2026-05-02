@@ -324,7 +324,7 @@ export function renderLandingPage(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${escapeHtml(TITLE)}</title>
 <meta name="description" content="${escapeHtml(DESCRIPTION)}" />
-<meta name="keywords" content="MCP, Model Context Protocol, Claude connector, Claude Code, ChatGPT Apps, Cursor, Windsurf, OpenClaw, REST API, TypeScript SDK, vibe coding, owned audience, owned website, Linktree alternative, Shopify alternative, Substack alternative, DOOMSCROLLR" />
+<meta name="keywords" content="MCP, Model Context Protocol, Claude connector, Claude Code, ChatGPT Apps, Cursor, Windsurf, Cline, OpenClaw, ClawHub, Smithery, n8n, REST API, TypeScript SDK, vibe coding, owned audience, owned website, Linktree alternative, Shopify alternative, ShopMy alternative, LTK alternative, Substack alternative, Eventbrite alternative, Gumroad alternative, Patreon alternative, DOOMSCROLLR" />
 <link rel="canonical" href="https://mcp.doomscrollr.com/" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://mcp.doomscrollr.com/" />
@@ -437,6 +437,7 @@ ${jsonLd()}
         <a class="badge" href="https://www.npmjs.com/package/${PACKAGE}">MCP npm</a>
         <a class="badge" href="https://clawhub.ai/aaayersss/doomscrollr">ClawHub</a>
         <a class="badge" href="https://www.npmjs.com/package/@doomscrollr/n8n-nodes-doomscrollr">n8n verified node</a>
+        <a class="badge" href="https://smithery.ai/servers/doomscrollr/mcp">Smithery</a>
         <a class="badge" href="https://doomscrollr.com/openapi.json?utm_source=mcp_landing&utm_medium=hero_badge&utm_campaign=developer_funnel&utm_content=openapi">OpenAPI</a>
         <span class="badge">MCP Registry: com.doomscrollr/mcp</span>
       </div>
@@ -487,7 +488,7 @@ OpenAPI: https://doomscrollr.com/openapi.json</code></pre>
   </section>
 </main>
 <footer>
-  <a href="https://doomscrollr.com?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=homepage">doomscrollr.com</a> · <a href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=featured">featured examples</a> · <a href="https://doomscrollr.com/docs/claude-connector-submission.md?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=claude_submission">Claude submission kit</a> · <a href="/llms.txt">llms.txt</a> · <a href="/.well-known/mcp">discovery JSON</a> · <a href="https://www.npmjs.com/package/@doomscrollr/n8n-nodes-doomscrollr">n8n verified node</a> · Built by DOOMSCROLLR
+  <a href="https://doomscrollr.com?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=homepage">doomscrollr.com</a> · <a href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=featured">featured examples</a> · <a href="https://doomscrollr.com/docs/claude-connector-submission.md?utm_source=mcp_landing&utm_medium=footer&utm_campaign=developer_funnel&utm_content=claude_submission">Claude submission kit</a> · <a href="/llms.txt">llms.txt</a> · <a href="/.well-known/mcp">discovery JSON</a> · <a href="https://www.npmjs.com/package/@doomscrollr/n8n-nodes-doomscrollr">n8n verified node</a> · <a href="https://smithery.ai/servers/doomscrollr/mcp">Smithery</a> · Built by DOOMSCROLLR
 </footer>
 </body>
 </html>`;
@@ -513,6 +514,7 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP + API
 - MCP Registry name: com.doomscrollr/mcp
 
 ## Approved integration surfaces
+- Smithery: https://smithery.ai/servers/doomscrollr/mcp
 - OpenClaw / ClawHub skill: https://clawhub.ai/aaayersss/doomscrollr (live v1.0.7)
 - n8n verified node: https://www.npmjs.com/package/@doomscrollr/n8n-nodes-doomscrollr (approved by n8n; verified-node rollout pending in n8n release batch)
 - MCP npm server: https://www.npmjs.com/package/@doomscrollr/mcp-server
