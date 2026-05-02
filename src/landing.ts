@@ -330,11 +330,15 @@ export function renderLandingPage(): string {
 <meta property="og:url" content="https://mcp.doomscrollr.com/" />
 <meta property="og:title" content="${escapeHtml(TITLE)}" />
 <meta property="og:description" content="${escapeHtml(DESCRIPTION)}" />
-<meta property="og:image" content="https://doomscrollr.com/assets/og-image.png" />
+<meta property="og:image" content="https://doomscrollr.com/share.png" />
+<meta property="og:image:width" content="500" />
+<meta property="og:image:height" content="500" />
+<link rel="icon" type="image/png" href="https://doomscrollr.com/share.png" />
+<link rel="apple-touch-icon" href="https://doomscrollr.com/share.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${escapeHtml(TITLE)}" />
 <meta name="twitter:description" content="${escapeHtml(DESCRIPTION)}" />
-<meta name="twitter:image" content="https://doomscrollr.com/assets/og-image.png" />
+<meta name="twitter:image" content="https://doomscrollr.com/share.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />

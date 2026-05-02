@@ -100,7 +100,13 @@ app.get("/.well-known/mcp/server-card.json", (_req, res) => {
       homepage: "https://mcp.doomscrollr.com",
       docs: "https://mcp.doomscrollr.com",
       repository: "https://github.com/DOOMSCROLLR/mcp",
+      icon: "https://doomscrollr.com/share.png",
+      logo: "https://doomscrollr.com/share.png",
+      iconUrl: "https://doomscrollr.com/share.png",
+      logoUrl: "https://doomscrollr.com/share.png",
     },
+    icon: "https://doomscrollr.com/share.png",
+    logo: "https://doomscrollr.com/share.png",
     tools: [
           {
                 "name": "doomscrollr_add_subscriber",
