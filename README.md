@@ -86,6 +86,7 @@ All tools are namespaced `doomscrollr_*`.
 | Account/settings | `create_world`, `get_profile`, `get_settings`, `update_settings`, `apply_style_preset`, `prepare_user_questions` |
 | Posts/pages | `publish_post`, `publish_image_post`, `post_shopmy_products`, `list_posts`, `update_post`, `delete_post`, `create_page`, `create_contact_page` |
 | Commerce | `create_product`, `list_products`, `scrape_shopify_products`, `import_shopify_products`, `update_product`, `delete_product`, bulk product tools |
+| Storefront imports | `scrape_shopify_products`, `scrape_gumroad_products`, `scrape_payhip_products`, `scrape_bandcamp_products`, `scrape_bigcartel_products`, `scrape_url_products` (auto-detect) and matching `import_*_products` |
 | Audience | `add_subscriber`, `update_subscriber`, `list_subscribers`, `remove_subscriber`, `export_audience_csv`, bulk subscriber tools |
 | Domains | `search_domains`, `connect_domain`, `disconnect_domain`, `buy_domain`, `domain_status` |
 | Pinterest/RSS | `search_pinterest`, `search_pinterest_and_post`, `connect_pinterest`, `pinterest_status`, `disconnect_pinterest`, `connect_rss`, `rss_status`, `disconnect_rss` |

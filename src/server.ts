@@ -2,6 +2,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { DoomscrollrClient } from "./api-client.js";
 import { scrapeShopifyProducts, type ShopifyScrapedProduct } from "./shopify.js";
+import { scrapeGumroadProducts } from "./gumroad.js";
+import { scrapePayhipProducts } from "./payhip.js";
+import { scrapeBandcampProducts } from "./bandcamp.js";
+import { scrapeBigCartelProducts } from "./bigcartel.js";
+import type { ScrapedProduct, ScrapeResult, Platform } from "./scraped-product.js";
 import { registerWidgetResources, widgetResult, widgetToolMeta } from "./widgets.js";
 
 export function createServer(apiKey: string, baseUrl?: string): McpServer {
@@ -543,6 +548,9 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       });
     }
   );
+
+  // ─── Generic platform scrape/import tools ────────────────────
+  registerPlatformScraperTools(server, client);
 
   server.tool(
     "doomscrollr_connect_pinterest",
@@ -1360,6 +1368,371 @@ function shopifyProductTimestamp(product: ShopifyScrapedProduct): number | null 
     if (!value) continue;
     const timestamp = Date.parse(value);
     if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return null;
+}
+
+function scrapedProductToDoomscrollrProduct(product: ScrapedProduct, shippingCost?: number) {
+  const hasVariants = product.variant_options.length > 0 && product.variants.length > 1;
+  const firstVariant = product.variants[0];
+  const isVirtual = product.is_virtual === true;
+  const type = isVirtual ? "digital" : "physical";
+
+  return {
+    title: product.title,
+    description: product.description,
+    price: product.price,
+    type,
+    cover_photo_url: product.image,
+    url: isVirtual ? product.url : undefined,
+    inventory_count: hasVariants ? undefined : (firstVariant?.inventory_count ?? (isVirtual ? undefined : 1)),
+    shipping_required: isVirtual ? false : true,
+    shipping_cost: isVirtual ? undefined : shippingCost,
+    sku: hasVariants ? undefined : firstVariant?.sku,
+    variant_options: hasVariants ? product.variant_options : undefined,
+    variants: hasVariants
+      ? product.variants.map((variant) => ({
+          variant_data: variant.variant_data,
+          price: variant.price,
+          inventory_count: variant.inventory_count,
+          sku: variant.sku,
+        }))
+      : undefined,
+  };
+}
+
+function registerPlatformScraperTools(server: McpServer, client: DoomscrollrClient) {
+  type PlatformDef = {
+    key: Platform;
+    name: string; // Display name for tool descriptions
+    scrape: (url: string, opts: { limit?: number }) => Promise<ScrapeResult>;
+    inputDescription: string;
+    importHint: string;
+  };
+
+  const platforms: PlatformDef[] = [
+    {
+      key: "gumroad",
+      name: "Gumroad",
+      scrape: scrapeGumroadProducts,
+      inputDescription: "Public Gumroad profile URL (https://username.gumroad.com) or product URL (https://username.gumroad.com/l/slug or https://gumroad.com/l/slug)",
+      importHint: "Gumroad products are typically digital downloads; created DOOMSCROLLR products default to type=digital and skip shipping.",
+    },
+    {
+      key: "payhip",
+      name: "Payhip",
+      scrape: scrapePayhipProducts,
+      inputDescription: "Public Payhip storefront URL (https://payhip.com/username) or product URL (https://payhip.com/b/slug)",
+      importHint: "Payhip products are typically digital; created DOOMSCROLLR products default to type=digital and skip shipping.",
+    },
+    {
+      key: "bandcamp",
+      name: "Bandcamp",
+      scrape: scrapeBandcampProducts,
+      inputDescription: "Public Bandcamp artist/label URL (https://artist.bandcamp.com), /music page, or album/track URL",
+      importHint: "Bandcamp digital albums/tracks default to type=digital. Items with physical merch packages are imported as physical.",
+    },
+    {
+      key: "bigcartel",
+      name: "Big Cartel",
+      scrape: scrapeBigCartelProducts,
+      inputDescription: "Public Big Cartel storefront URL (https://store.bigcartel.com) or product URL",
+      importHint: "Big Cartel products are imported as physical with variant/inventory data when available.",
+    },
+  ];
+
+  for (const platform of platforms) {
+    registerScrapeTool(server, platform);
+    registerImportTool(server, client, platform);
+  }
+
+  registerUnifiedTools(server, client);
+}
+
+function registerScrapeTool(
+  server: McpServer,
+  platform: { key: Platform; name: string; scrape: (url: string, opts: { limit?: number }) => Promise<ScrapeResult>; inputDescription: string; importHint: string }
+) {
+  server.tool(
+    `doomscrollr_scrape_${platform.key}_products`,
+    `Scrape a public ${platform.name} storefront or product page without creating anything. Returns normalized products, images, prices, variants, and source URLs.`,
+    {
+      url: z.string().url().describe(platform.inputDescription),
+      limit: z.number().int().min(1).max(100).optional().describe("Maximum products to return. Default 50."),
+    },
+    async ({ url, limit }: { url: string; limit?: number }) => {
+      const result = await platform.scrape(url, { limit });
+      const questions = userQuestionsFor("shopify_import", `Import products from this public ${platform.name} feed`, {
+        source_url: result.source_url,
+        feed_url: result.feed_url,
+        product_count: result.count,
+      });
+      const payload = { ...result, suggested_user_questions: questions };
+      return {
+        structuredContent: payload,
+        content: [{ type: "text" as const, text: JSON.stringify(payload, null, 2) }],
+      };
+    }
+  );
+}
+
+function registerImportTool(
+  server: McpServer,
+  client: DoomscrollrClient,
+  platform: { key: Platform; name: string; scrape: (url: string, opts: { limit?: number }) => Promise<ScrapeResult>; inputDescription: string; importHint: string }
+) {
+  server.registerTool(
+    `doomscrollr_import_${platform.key}_products`,
+    {
+      description: `Scrape a public ${platform.name} storefront and create DOOMSCROLLR products, feed posts, or both. ${platform.importHint} When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page. Never append import attribution, source URLs, or phrases like 'Imported from... Original listing...' to product or post descriptions; source URLs belong only in metadata/tool results.`,
+      inputSchema: {
+        url: z.string().url().describe(platform.inputDescription),
+        mode: z.enum(["products", "posts", "both"]).describe("products = create DOOMSCROLLR products; posts = create feed posts linking to source products; both = do both"),
+        limit: z.number().int().min(1).max(50).optional().describe("Maximum products to import. Default 20, max 50."),
+        status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status when creating posts. Use draft unless the user clearly asked to publish now."),
+        publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
+        tags: z.string().optional().describe("Comma-separated tags to attach to created posts"),
+        shoppable: z.boolean().optional().describe("When creating posts, turn on the feed buy button."),
+        display_order: z.enum(["source", "source_reversed", "newest_first", "oldest_first"]).optional().describe("Desired top-to-bottom order when creating posts. source preserves the storefront's listing order."),
+        shipping_cost: z.number().min(0).optional().describe("Optional default shipping cost for created physical products. Ignored for virtual/digital products."),
+      },
+      annotations: { title: `Import ${platform.name} Products`, readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      _meta: widgetToolMeta("product", `Importing ${platform.name} products\u2026`, `${platform.name} products imported`),
+    },
+    async (params: any) => {
+      const result = await runImport(client, await platform.scrape(String(params.url), { limit: Math.min(Math.max(Number(params.limit ?? 20), 1), 50) }), params, platform.key);
+      return widgetResult("product", result, {
+        status: `${platform.key}_import_complete`,
+        mode: result.mode,
+        created_products_count: result.created_products_count,
+        created_posts_count: result.created_posts_count,
+        skipped_count: result.skipped_count,
+      });
+    }
+  );
+}
+
+function registerUnifiedTools(server: McpServer, client: DoomscrollrClient) {
+  const supported = "shopify, gumroad, payhip, bandcamp, bigcartel";
+
+  server.tool(
+    "doomscrollr_scrape_url_products",
+    `Scrape products from a public storefront URL on any supported platform (${supported}). Auto-detects the platform from the URL host (and falls back to trying Shopify for custom domains).`,
+    {
+      url: z.string().url().describe("Public storefront, collection, or product URL on a supported platform"),
+      limit: z.number().int().min(1).max(100).optional().describe("Maximum products to return. Default 50."),
+    },
+    async ({ url, limit }: { url: string; limit?: number }) => {
+      const { result, platform } = await autoScrape(url, { limit });
+      const questions = userQuestionsFor("shopify_import", `Import products from this public ${platform} feed`, {
+        source_url: result.source_url,
+        feed_url: (result as any).feed_url,
+        product_count: result.count,
+      });
+      const payload = { ...result, platform, suggested_user_questions: questions };
+      return {
+        structuredContent: payload,
+        content: [{ type: "text" as const, text: JSON.stringify(payload, null, 2) }],
+      };
+    }
+  );
+
+  server.registerTool(
+    "doomscrollr_import_url_products",
+    {
+      description: `Auto-detect the storefront platform from a URL (${supported}) and create DOOMSCROLLR products, feed posts, or both. When reporting results, product/post links for mode='both' MUST use the direct /products/{encodedId} product URL from product_url or link_url; never use the generic /products collection page. Never append import attribution, source URLs, or phrases like 'Imported from... Original listing...' to product or post descriptions; source URLs belong only in metadata/tool results.`,
+      inputSchema: {
+        url: z.string().url().describe("Public storefront, collection, or product URL on a supported platform"),
+        mode: z.enum(["products", "posts", "both"]).describe("products = create DOOMSCROLLR products; posts = create feed posts linking to source products; both = do both"),
+        limit: z.number().int().min(1).max(50).optional().describe("Maximum products to import. Default 20, max 50."),
+        status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status when creating posts. Use draft unless the user clearly asked to publish now."),
+        publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime for scheduled posts"),
+        tags: z.string().optional().describe("Comma-separated tags to attach to created posts"),
+        shoppable: z.boolean().optional().describe("When creating posts, turn on the feed buy button."),
+        display_order: z.enum(["source", "source_reversed", "newest_first", "oldest_first"]).optional().describe("Desired top-to-bottom order when creating posts."),
+        shipping_cost: z.number().min(0).optional().describe("Optional default shipping cost for created physical products. Ignored for virtual/digital products."),
+      },
+      annotations: { title: "Import URL Products", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      _meta: widgetToolMeta("product", "Importing products\u2026", "Products imported"),
+    },
+    async (params: any) => {
+      const limit = Math.min(Math.max(Number(params.limit ?? 20), 1), 50);
+      const { result: scrape, platform } = await autoScrape(String(params.url), { limit });
+      const result = await runImport(client, scrape, params, platform);
+      return widgetResult("product", { ...result, platform }, {
+        status: `${platform}_import_complete`,
+        platform,
+        mode: result.mode,
+        created_products_count: result.created_products_count,
+        created_posts_count: result.created_posts_count,
+        skipped_count: result.skipped_count,
+      });
+    }
+  );
+}
+
+async function autoScrape(url: string, opts: { limit?: number }): Promise<{ result: ScrapeResult | { source_url: string; feed_url?: string; store_url?: string; count: number; products: ScrapedProduct[] }; platform: Platform }> {
+  const detected = detectPlatform(url);
+  const tryers: Platform[] = detected ? [detected] : ["shopify"];
+  let lastError: unknown = null;
+  for (const platform of tryers) {
+    try {
+      const result = await scrapeForPlatform(platform, url, opts);
+      if (result.count > 0 || tryers.length === 1) {
+        return { result, platform };
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!detected) {
+    throw new Error(`Could not detect a supported storefront platform for ${url}. Supported: shopify, gumroad, payhip, bandcamp, bigcartel.${lastError ? ` Last error: ${lastError instanceof Error ? lastError.message : String(lastError)}` : ""}`);
+  }
+  if (lastError) throw lastError instanceof Error ? lastError : new Error(String(lastError));
+  throw new Error(`No products found at ${url}.`);
+}
+
+function detectPlatform(url: string): Platform | null {
+  let host = "";
+  let html = "";
+  try {
+    host = new URL(url).host.toLowerCase();
+  } catch {
+    return null;
+  }
+  if (/\.myshopify\.com$/.test(host)) return "shopify";
+  if (/(^|\.)gumroad\.com$/.test(host)) return "gumroad";
+  if (/(^|\.)payhip\.com$/.test(host)) return "payhip";
+  if (/\.bandcamp\.com$/.test(host) || host === "bandcamp.com") return "bandcamp";
+  if (/\.bigcartel\.com$/.test(host)) return "bigcartel";
+  void html;
+  return null;
+}
+
+async function scrapeForPlatform(platform: Platform, url: string, opts: { limit?: number }): Promise<ScrapeResult> {
+  switch (platform) {
+    case "shopify": {
+      const r = await scrapeShopifyProducts(url, opts);
+      return {
+        source_url: r.source_url,
+        feed_url: r.feed_url,
+        store_url: r.store_url,
+        count: r.count,
+        products: r.products.map((p) => ({ ...p, platform: "shopify" as const, tags: Array.isArray(p.tags) ? p.tags : undefined, is_virtual: false })),
+        platform: "shopify",
+      };
+    }
+    case "gumroad": return scrapeGumroadProducts(url, opts);
+    case "payhip":  return scrapePayhipProducts(url, opts);
+    case "bandcamp": return scrapeBandcampProducts(url, opts);
+    case "bigcartel": return scrapeBigCartelProducts(url, opts);
+  }
+}
+
+async function runImport(
+  client: DoomscrollrClient,
+  scrape: ScrapeResult | { source_url: string; feed_url?: string; store_url?: string; count: number; products: ScrapedProduct[] },
+  params: any,
+  platform: Platform
+) {
+  const mode = params.mode as "products" | "posts" | "both";
+  const limit = Math.min(Math.max(Number(params.limit ?? 20), 1), 50);
+  const status = String(params.status ?? "draft");
+  const tags = params.tags as string | undefined;
+  const publish_at = params.publish_at as string | undefined;
+  const shipping_cost = typeof params.shipping_cost === "number" ? params.shipping_cost : undefined;
+  const shoppable = typeof params.shoppable === "boolean" ? params.shoppable : false;
+  const displayOrder = String(params.display_order ?? "source") as "source" | "source_reversed" | "newest_first" | "oldest_first";
+
+  const profile = await client.getProfile().catch(() => null) as Record<string, any> | null;
+  const createdProducts: any[] = [];
+  const createdPosts: any[] = [];
+  const skipped: Array<{ title: string; reason: string }> = [];
+
+  const createsFeedPosts = mode === "posts" || mode === "both";
+  let ordered = orderScrapedProductsForImport(scrape.products as ScrapedProduct[], displayOrder).slice(0, limit);
+  if (createsFeedPosts) ordered = ordered.reverse();
+
+  for (const product of ordered) {
+    try {
+      let createdProduct: any | null = null;
+      if (mode === "products" || mode === "both") {
+        createdProduct = await client.createProduct(scrapedProductToDoomscrollrProduct(product, shipping_cost) as any);
+        const productUrl = doomscrollrProductUrl(profile, createdProduct?.id);
+        createdProducts.push({
+          id: createdProduct?.id,
+          title: createdProduct?.title ?? product.title,
+          price: createdProduct?.price ?? product.price,
+          source_url: product.url,
+          product_url: productUrl,
+          share_url: productUrl,
+        });
+      }
+      if (mode === "posts" || mode === "both") {
+        const postUrl = mode === "both"
+          ? (doomscrollrProductUrl(profile, createdProduct?.id) ?? product.url)
+          : product.url;
+        const post = await client.createLinkPost({
+          url: postUrl,
+          title: product.title,
+          description: product.description,
+          status,
+          publish_at,
+          tags,
+          shoppable,
+        });
+        createdPosts.push({
+          id: (post as any)?.id,
+          title: (post as any)?.title ?? product.title,
+          url: (post as any)?.url ?? postUrl,
+          link_url: postUrl,
+          product_url: mode === "both" ? postUrl : undefined,
+          source_url: product.url,
+        });
+      }
+    } catch (error) {
+      skipped.push({ title: product.title, reason: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  return {
+    source_url: scrape.source_url,
+    feed_url: (scrape as any).feed_url,
+    platform,
+    mode,
+    found: scrape.count,
+    processed: Math.min(scrape.products.length, limit),
+    created_products_count: createdProducts.length,
+    created_posts_count: createdPosts.length,
+    skipped_count: skipped.length,
+    products: createdProducts,
+    posts: createdPosts,
+    skipped,
+  };
+}
+
+function orderScrapedProductsForImport(products: ScrapedProduct[], displayOrder: "source" | "source_reversed" | "newest_first" | "oldest_first"): ScrapedProduct[] {
+  let ordered = [...products];
+  if (displayOrder === "source_reversed") {
+    ordered.reverse();
+  } else if (displayOrder === "newest_first" || displayOrder === "oldest_first") {
+    ordered.sort((a, b) => {
+      const at = scrapedProductTimestamp(a);
+      const bt = scrapedProductTimestamp(b);
+      if (at === bt) return 0;
+      if (at === null) return 1;
+      if (bt === null) return -1;
+      return displayOrder === "newest_first" ? bt - at : at - bt;
+    });
+  }
+  return ordered;
+}
+
+function scrapedProductTimestamp(product: ScrapedProduct): number | null {
+  for (const value of [product.created_at, product.published_at, product.updated_at]) {
+    if (!value) continue;
+    const t = Date.parse(value);
+    if (Number.isFinite(t)) return t;
   }
   return null;
 }

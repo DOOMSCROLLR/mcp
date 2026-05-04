@@ -1,6 +1,6 @@
 {
   "name": "@doomscrollr/mcp-server",
-  "version": "1.0.24",
+  "version": "1.1.0",
   "mcpName": "com.doomscrollr/mcp",
   "description": "DOOMSCROLLR MCP server — AI agents build owned-audience websites, affiliate storefronts, product drops, newsletters, tickets, and subscriber capture for the audience layer of the AI agent world.",
   "main": "dist/index.js",
@@ -20,6 +20,8 @@
   "scripts": {
     "build": "tsc && node ./scripts/build-server-card.mjs",
     "test:widgets": "npm run build && node test/widgets.test.mjs",
+    "test:scrapers": "npm run build && node --test test/scrapers.test.mjs",
+    "test": "npm run build && node --test test/widgets.test.mjs test/scrapers.test.mjs",
     "start": "node dist/index.js",
     "start:http": "node dist/http.js",
     "dev": "tsx src/index.ts",
@@ -41,6 +43,12 @@
     "creator-tools",
     "ecommerce",
     "shopify",
+    "gumroad",
+    "payhip",
+    "bandcamp",
+    "bigcartel",
+    "digital-products",
+    "virtual-products",
     "doomscrollr"
   ],
   "author": "DOOMSCROLLR",

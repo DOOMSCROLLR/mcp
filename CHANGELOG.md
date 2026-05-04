@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0
+
+- Added public-storefront product scrapers + importers for Gumroad, Payhip, Bandcamp, and Big Cartel.
+  - `doomscrollr_scrape_<platform>_products` and `doomscrollr_import_<platform>_products` tool pairs for each new platform, mirroring the existing Shopify pattern.
+  - Digital/virtual products (Gumroad, Payhip, most Bandcamp items) are imported as `type=digital` with shipping disabled.
+- Added unified auto-detect tools `doomscrollr_scrape_url_products` and `doomscrollr_import_url_products` that sniff the platform from the URL host (shopify, gumroad, payhip, bandcamp, bigcartel) and fall back to Shopify for custom domains.
+- Source URLs and import attribution remain in tool result metadata only — never appended to product or post descriptions.
+- Added test fixtures for the new scrapers (`test/scrapers.test.mjs`).
+
 ## 1.0.23
 
 - Clarified Shopify imports must not append source attribution or original listing URLs to product/post descriptions.
