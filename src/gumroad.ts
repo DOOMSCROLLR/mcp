@@ -70,6 +70,8 @@ function isProductPath(pathname: string): boolean {
 
 export function findGumroadProductLinks(html: string, baseUrl: URL): string[] {
   const urls: string[] = [];
+
+  // 1) Static <a href="/l/slug"> links (older Gumroad profile pages)
   const re = /href=["']([^"']*\/l\/[^"'?#]+)/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) !== null) {
@@ -82,6 +84,15 @@ export function findGumroadProductLinks(html: string, baseUrl: URL): string[] {
       /* skip */
     }
   }
+
+  // 2) Inertia.js `data-page` JSON (current Gumroad profile pages, 2025+)
+  //    Profiles render products client-side from JSON embedded as: <div id="app" data-page="{...}">
+  //    Extract products[].url or products[].permalink to build product URLs.
+  const inertiaUrls = extractInertiaProductUrls(html, baseUrl);
+  for (const u of inertiaUrls) {
+    if (!urls.includes(u)) urls.push(u);
+  }
+
   return urls;
 }
 
@@ -163,16 +174,60 @@ export function parseGumroadProductHtml(html: string, productUrl: string): Scrap
   };
 }
 
+function extractInertiaProductUrls(html: string, baseUrl: URL): string[] {
+  const urls: string[] = [];
+  const m = /<div\s+id=["']app["'][^>]*\sdata-page=["']([^"']+)["']/i.exec(html);
+  if (!m) return urls;
+  const decoded = decodeHtmlAttribute(m[1]);
+  let parsed: any;
+  try {
+    parsed = JSON.parse(decoded);
+  } catch {
+    return urls;
+  }
+  const sections = parsed?.props?.sections;
+  if (!Array.isArray(sections)) return urls;
+  for (const section of sections) {
+    const products = section?.search_results?.products;
+    if (!Array.isArray(products)) continue;
+    for (const p of products) {
+      let url: string | undefined;
+      if (typeof p?.url === "string" && /^https?:\/\//i.test(p.url)) {
+        try {
+          const u = new URL(p.url);
+          url = `${u.protocol}//${u.host}${u.pathname}`;
+        } catch {
+          /* skip */
+        }
+      } else if (typeof p?.permalink === "string" && p.permalink) {
+        url = `${baseUrl.protocol}//${baseUrl.host}/l/${p.permalink}`;
+      }
+      if (url && !urls.includes(url)) urls.push(url);
+    }
+  }
+  return urls;
+}
+
 function extractGumroadEmbedded(html: string): any | null {
-  // Gumroad product pages embed React props as data-component-props='{...}' on a div, or in window.GR_INITIAL_STATE.
+  // Gumroad product pages embed React props in one of three places:
+  //   1) Inertia.js: <div id="app" data-page='{"props":{"product":{...}}}'>  (current, 2025+)
+  //   2) data-component-props='{...}' on a div  (older format)
+  //   3) window.GR_INITIAL_STATE = {...};  (oldest format)
   const candidates: string[] = [];
 
+  // 1) Inertia data-page attribute (preferred — most reliable, has the full product on product pages)
+  const inertiaRe = /<div\s+id=["']app["'][^>]*\sdata-page=["']([^"']+)["']/i;
+  const im = inertiaRe.exec(html);
+  if (im) candidates.push(im[1]);
+
+  // 2) data-component-props (older format)
   const dataPropsRe = /data-component-props=(?:"|')((?:[^"'\\]|\\.)*)(?:"|')/g;
   let m: RegExpExecArray | null;
   while ((m = dataPropsRe.exec(html)) !== null) {
     candidates.push(m[1]);
   }
 
+  // 3) window.GR_INITIAL_STATE = {...}
   const stateRe = /window\.(?:GR_INITIAL_STATE|GumroadInitialState)\s*=\s*(\{[\s\S]*?\});/;
   const sm = stateRe.exec(html);
   if (sm) candidates.push(sm[1]);
@@ -192,8 +247,19 @@ function extractGumroadEmbedded(html: string): any | null {
 
 function findProductObject(obj: any): any | null {
   if (!obj || typeof obj !== "object") return null;
+  // Direct product object: has name + price (or close to it)
   if (typeof obj.name === "string" && (obj.price_cents !== undefined || obj.formatted_price !== undefined)) return obj;
-  if (obj.product && typeof obj.product === "object") return obj.product;
+  // Inertia page wrapper: { component, props: { product: {...} } } — most common on product pages
+  if (obj.props && typeof obj.props === "object" && obj.props.product && typeof obj.props.product === "object") {
+    const inner = findProductObject(obj.props.product);
+    if (inner) return inner;
+  }
+  // Direct .product field
+  if (obj.product && typeof obj.product === "object") {
+    const inner = findProductObject(obj.product);
+    if (inner) return inner;
+  }
+  // Fallback: recursively search any nested objects
   for (const key of Object.keys(obj)) {
     const child = (obj as any)[key];
     if (child && typeof child === "object") {

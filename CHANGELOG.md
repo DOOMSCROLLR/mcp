@@ -6,8 +6,10 @@
   - `doomscrollr_scrape_<platform>_products` and `doomscrollr_import_<platform>_products` tool pairs for each new platform, mirroring the existing Shopify pattern.
   - Digital/virtual products (Gumroad, Payhip, most Bandcamp items) are imported as `type=digital` with shipping disabled.
 - Added unified auto-detect tools `doomscrollr_scrape_url_products` and `doomscrollr_import_url_products` that sniff the platform from the URL host (shopify, gumroad, payhip, bandcamp, bigcartel) and fall back to Shopify for custom domains.
+- Gumroad scraper supports the current Inertia.js page format in addition to legacy `data-component-props` and `window.GR_INITIAL_STATE` blobs, so profile-page product discovery and per-product price/image extraction work on contemporary Gumroad creator pages.
 - Source URLs and import attribution remain in tool result metadata only — never appended to product or post descriptions.
 - Added test fixtures for the new scrapers (`test/scrapers.test.mjs`).
+- Verified live against real creator storefronts (Gumroad: mackenziechild; Bandcamp: Bonobo; Payhip: CollectiveWellness, RawBeadCollection; Big Cartel: shop.bigcartel.com).
 
 ## 1.0.23
 
