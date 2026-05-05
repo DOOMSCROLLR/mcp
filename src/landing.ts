@@ -362,9 +362,9 @@ ${jsonLd()}
   header .nav { justify-self: start; display: flex; gap: 14px 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; min-width: 0; }
   header .nav a { background: transparent; text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
   header .nav a:hover { background: var(--lime); border-bottom-color: var(--black); }
-  header .brand { justify-self: center; display: flex; align-items: center; text-decoration: none; }
+  header .brand { justify-self: center; display: flex; align-items: center; justify-content: center; text-decoration: none; width: 220px; max-width: min(220px, 46vw); }
   header .brand:hover { background: transparent; }
-  header .brand img { height: 24px; width: auto; max-height: 26px; object-fit: contain; filter: brightness(0); display: block; }
+  header .brand img { height: 24px; width: auto; max-width: 100%; max-height: 24px; object-fit: contain; filter: brightness(0); display: block; }
   header .cta { justify-self: end; background: var(--lime); border: 2px solid var(--black); padding: 8px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; text-decoration: none; box-shadow: 3px 3px 0 var(--black); white-space: nowrap; }
   header .cta:hover { background: var(--white); }
   .header-spacer { height: 64px; width: 100%; flex-shrink: 0; }
@@ -413,7 +413,7 @@ ${jsonLd()}
   footer { margin-top: 96px; padding: 28px 32px; border-top: 2px solid var(--black); font-size: 11px; text-align: center; }
   @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .proof-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } header .nav { display: none; } }
   @media (max-width: 640px) { header .cta { display: none; } header .header-inner { grid-template-columns: 1fr auto 1fr; } }
-  @media (max-width: 520px) { html, body { font-size: 12px; } main { padding: 34px 16px 68px; } header { height: 56px; } header .header-inner { padding: 0 16px; } header .brand img { height: 20px; } .header-spacer { height: 56px; } .hero h1 { font-size: clamp(31px, 13vw, 48px); letter-spacing: -0.06em; } .hero p.lede { font-size: 14px; } .setup-grid, .integration-grid { grid-template-columns: 1fr; } .proof-row { grid-template-columns: 1fr; } .setup-card, .integration-card a, .tool-group, .faq, .prompt-card { padding: 16px; box-shadow: 3px 3px 0 var(--black); } .badge { padding: 7px 10px; font-size: 10px; } pre { margin-left: -4px; margin-right: -4px; font-size: 10px; } section { margin-top: 52px; } }
+  @media (max-width: 520px) { html, body { font-size: 12px; } main { padding: 34px 16px 68px; } header { height: 56px; } header .header-inner { padding: 0 16px; } header .brand { width: min(200px, 46vw); } header .brand img { height: 20px; max-height: 20px; } .header-spacer { height: 56px; } .hero h1 { font-size: clamp(31px, 13vw, 48px); letter-spacing: -0.06em; } .hero p.lede { font-size: 14px; } .setup-grid, .integration-grid { grid-template-columns: 1fr; } .proof-row { grid-template-columns: 1fr; } .setup-card, .integration-card a, .tool-group, .faq, .prompt-card { padding: 16px; box-shadow: 3px 3px 0 var(--black); } .badge { padding: 7px 10px; font-size: 10px; } pre { margin-left: -4px; margin-right: -4px; font-size: 10px; } section { margin-top: 52px; } }
 </style>
 </head>
 <body>
