@@ -357,11 +357,17 @@ ${jsonLd()}
   a { color: inherit; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
   a:hover { background: var(--lime); }
   code { font-family: var(--font); overflow-wrap: anywhere; }
-  header { background: var(--blue); color: var(--black); padding: 14px 32px; border-bottom: 2px solid var(--black); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  header .brand { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
-  header .nav { display: flex; gap: 12px 18px; font-size: 11px; font-weight: 800; text-transform: uppercase; flex-wrap: wrap; min-width: 0; }
-  header .nav a { background: transparent; }
-  header .nav a:hover { background: var(--lime); }
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--blue); color: var(--black); height: 64px; border-bottom: 2px solid var(--black); display: flex; align-items: center; }
+  header .header-inner { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 100%; gap: 12px; }
+  header .nav { justify-self: start; display: flex; gap: 14px 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; min-width: 0; }
+  header .nav a { background: transparent; text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
+  header .nav a:hover { background: var(--lime); border-bottom-color: var(--black); }
+  header .brand { justify-self: center; display: flex; align-items: center; text-decoration: none; }
+  header .brand:hover { background: transparent; }
+  header .brand img { height: 24px; width: auto; max-height: 26px; object-fit: contain; filter: brightness(0); display: block; }
+  header .cta { justify-self: end; background: var(--lime); border: 2px solid var(--black); padding: 8px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; text-decoration: none; box-shadow: 3px 3px 0 var(--black); white-space: nowrap; }
+  header .cta:hover { background: var(--white); }
+  .header-spacer { height: 64px; width: 100%; flex-shrink: 0; }
   main { width: 100%; max-width: 1180px; margin: 0 auto; padding: 52px 32px 96px; overflow: hidden; }
   .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 34px; align-items: start; }
   .kicker { display: inline-block; background: var(--lime); border: 2px solid var(--black); box-shadow: var(--shadow); padding: 7px 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 22px; }
@@ -405,23 +411,28 @@ ${jsonLd()}
   .faq[open] summary { color: var(--blue); }
   .faq p { margin-top: 8px; font-size: 12px; }
   footer { margin-top: 96px; padding: 28px 32px; border-top: 2px solid var(--black); font-size: 11px; text-align: center; }
-  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .proof-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } header { align-items: flex-start; } header .nav { width: 100%; } }
-  @media (max-width: 520px) { html, body { font-size: 12px; } main { padding: 34px 16px 68px; } header { padding: 12px 16px; } header .brand { font-size: 14px; } header .nav { gap: 8px 12px; font-size: 10px; } .hero h1 { font-size: clamp(31px, 13vw, 48px); letter-spacing: -0.06em; } .hero p.lede { font-size: 14px; } .setup-grid, .integration-grid { grid-template-columns: 1fr; } .proof-row { grid-template-columns: 1fr; } .setup-card, .integration-card a, .tool-group, .faq, .prompt-card { padding: 16px; box-shadow: 3px 3px 0 var(--black); } .badge { padding: 7px 10px; font-size: 10px; } pre { margin-left: -4px; margin-right: -4px; font-size: 10px; } section { margin-top: 52px; } }
+  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .proof-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } header .nav { display: none; } }
+  @media (max-width: 640px) { header .cta { display: none; } header .header-inner { grid-template-columns: 1fr auto 1fr; } }
+  @media (max-width: 520px) { html, body { font-size: 12px; } main { padding: 34px 16px 68px; } header { height: 56px; } header .header-inner { padding: 0 16px; } header .brand img { height: 20px; } .header-spacer { height: 56px; } .hero h1 { font-size: clamp(31px, 13vw, 48px); letter-spacing: -0.06em; } .hero p.lede { font-size: 14px; } .setup-grid, .integration-grid { grid-template-columns: 1fr; } .proof-row { grid-template-columns: 1fr; } .setup-card, .integration-card a, .tool-group, .faq, .prompt-card { padding: 16px; box-shadow: 3px 3px 0 var(--black); } .badge { padding: 7px 10px; font-size: 10px; } pre { margin-left: -4px; margin-right: -4px; font-size: 10px; } section { margin-top: 52px; } }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">DOOMSCROLLR · MCP + API</div>
-  <nav class="nav">
-    <a href="#quickstart">Quickstart</a>
-    <a href="#integrations">Integrations</a>
-    <a href="#prompts">Prompts</a>
-    <a href="#tools">Tools</a>
-    <a href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=featured">Featured</a>
-    <a href="https://doomscrollr.com/docs/claude.md?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=claude_docs">Claude</a>
-    <a href="https://doomscrollr.com?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=homepage">DOOMSCROLLR</a>
-  </nav>
+  <div class="header-inner">
+    <nav class="nav" aria-label="Primary">
+      <a href="#quickstart">Quickstart</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#prompts">Prompts</a>
+      <a href="#tools">Tools</a>
+      <a href="https://doomscrollr.com/pricing?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=pricing">Pricing</a>
+    </nav>
+    <a class="brand" href="https://doomscrollr.com?utm_source=mcp_landing&utm_medium=nav&utm_campaign=developer_funnel&utm_content=homepage" aria-label="DOOMSCROLLR home">
+      <img src="https://doomscrollr.com/images/DOOMSCROLLR-Large.png" alt="DOOMSCROLLR" />
+    </a>
+    <a class="cta" href="https://doomscrollr.com/register?free=1&utm_source=mcp_landing&utm_medium=header_cta&utm_campaign=developer_funnel&utm_content=get_started">Get started</a>
+  </div>
 </header>
+<div class="header-spacer" aria-hidden="true"></div>
 <main>
   <section class="hero">
     <div>
