@@ -9,6 +9,117 @@ import { scrapeBigCartelProducts } from "./bigcartel.js";
 import type { ScrapedProduct, ScrapeResult, Platform } from "./scraped-product.js";
 import { registerWidgetResources, widgetResult, widgetToolMeta } from "./widgets.js";
 
+type PreviewImageInspection = {
+  ok: boolean;
+  reason?: string;
+  image?: string;
+};
+
+const PREVIEW_FETCH_TIMEOUT_MS = 8000;
+const MIN_PREVIEW_IMAGE_WIDTH = 300;
+const MIN_PREVIEW_IMAGE_HEIGHT = 160;
+
+function firstRegexCapture(source: string, patterns: RegExp[]): string | undefined {
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    if (match?.[1]) return decodeHtmlAttribute(match[1].trim());
+  }
+  return undefined;
+}
+
+function decodeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+function absoluteUrl(candidate: string | undefined, base: string): string | undefined {
+  if (!candidate) return undefined;
+  try {
+    return new URL(candidate, base).toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function isPlaceholderPreviewImage(imageUrl: string): boolean {
+  const normalized = imageUrl.toLowerCase().split("?")[0];
+  return /(^|\/)favicon\.(ico|png|jpg|jpeg|svg|webp)$/.test(normalized)
+    || /(^|\/)apple-touch-icon/.test(normalized)
+    || /(^|\/)android-chrome-/.test(normalized)
+    || /(^|\/)mstile-/.test(normalized);
+}
+
+function numericMeta(source: string, property: string): number | undefined {
+  const escaped = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const value = firstRegexCapture(source, [
+    new RegExp(`<meta[^>]+property=["']${escaped}["'][^>]+content=["']([^"']+)["'][^>]*>`, "i"),
+    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${escaped}["'][^>]*>`, "i"),
+  ]);
+  if (!value) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+async function inspectLinkPreviewImage(url: string): Promise<PreviewImageInspection> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PREVIEW_FETCH_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "user-agent": "DOOMSCROLLR-MCP/1.1 (+https://doomscrollr.com)",
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+    });
+
+    if (!response.ok) {
+      return { ok: false, reason: `URL returned HTTP ${response.status}` };
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
+      return { ok: true };
+    }
+
+    const html = await response.text();
+    const image = absoluteUrl(firstRegexCapture(html, [
+      /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image:secure_url["'][^>]*>/i,
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["'][^>]*>/i,
+      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["'][^>]*>/i,
+      /<meta[^>]+itemprop=["']image["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+      /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["'][^>]*>/i,
+    ]), url);
+
+    if (!image) {
+      return { ok: false, reason: "No og:image, twitter:image, itemprop image, or image_src preview image found" };
+    }
+
+    if (isPlaceholderPreviewImage(image)) {
+      return { ok: false, reason: "Preview image is a favicon/touch icon placeholder", image };
+    }
+
+    const width = numericMeta(html, "og:image:width");
+    const height = numericMeta(html, "og:image:height");
+    if ((width && width < MIN_PREVIEW_IMAGE_WIDTH) || (height && height < MIN_PREVIEW_IMAGE_HEIGHT)) {
+      return { ok: false, reason: `Preview image is too small (${width ?? "unknown"}x${height ?? "unknown"})`, image };
+    }
+
+    return { ok: true, image };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : "Unable to inspect URL preview image" };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export function createServer(apiKey: string, baseUrl?: string): McpServer {
   const client = new DoomscrollrClient(apiKey, baseUrl);
 
@@ -167,8 +278,29 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
       publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
       shoppable: z.boolean().optional().describe("Show a buy button on this post. Use true for product/Shopify/commerce links when the user asks for buy buttons."),
+      allow_no_image: z.boolean().optional().describe("Advanced override: allow publishing even when the source URL has no usable social preview image. Defaults to false to prevent broken/favicon placeholder posts."),
     },
-    async (params) => {
+    async ({ allow_no_image, ...params }) => {
+      const status = params.status ?? "published";
+      if (!allow_no_image && status !== "draft") {
+        const preview = await inspectLinkPreviewImage(params.url);
+        if (!preview.ok) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "POST_NOT_CREATED_MISSING_USABLE_IMAGE",
+                message: "This URL does not expose a usable social preview image, so DOOMSCROLLR did not publish it. Create it as a draft, provide a real image post, or retry with allow_no_image=true if you intentionally want a text-only/link-only post.",
+                url: params.url,
+                reason: preview.reason,
+                detected_image: preview.image ?? null,
+                suggested_action: "Use status='draft' for review or doomscrollr_publish_image_post with a real image URL.",
+              }, null, 2),
+            }],
+          };
+        }
+      }
+
       const result = await client.createLinkPost(params);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
