@@ -19,6 +19,18 @@ const PREVIEW_FETCH_TIMEOUT_MS = 8000;
 const MIN_PREVIEW_IMAGE_WIDTH = 300;
 const MIN_PREVIEW_IMAGE_HEIGHT = 160;
 
+function isPolymarketUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    return host === "polymarket.com"
+      || host.endsWith(".polymarket.com")
+      || host.includes("polymarket-api");
+  } catch {
+    return false;
+  }
+}
+
 function firstRegexCapture(source: string, patterns: RegExp[]): string | undefined {
   for (const pattern of patterns) {
     const match = source.match(pattern);
@@ -125,7 +137,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.0.24",
+    version: "1.1.1",
   });
 
   registerWidgetResources(server);
@@ -269,7 +281,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_publish_post",
-    "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers. Set shoppable=true to show a buy button for product/commerce links.",
+    "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers. Polymarket URLs automatically render as owned widget embeds; use doomscrollr_publish_polymarket_post when the user specifically asks for a Polymarket odds post. Set shoppable=true to show a buy button for product/commerce links.",
     {
       url: z.string().url().describe("URL to share"),
       title: z.string().optional().describe("Post title"),
@@ -282,7 +294,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     },
     async ({ allow_no_image, ...params }) => {
       const status = params.status ?? "published";
-      if (!allow_no_image && status !== "draft") {
+      if (!allow_no_image && status !== "draft" && !isPolymarketUrl(params.url)) {
         const preview = await inspectLinkPreviewImage(params.url);
         if (!preview.ok) {
           return {
@@ -302,6 +314,39 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       }
 
       const result = await client.createLinkPost(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_publish_polymarket_post",
+    "Publish a Polymarket market/event URL to your DOOMSCROLLR as an owned iframe embed. Use this when the user gives a Polymarket URL or asks to post betting/market odds; DOOMSCROLLR automatically renders it through the owned Polymarket widget instead of a plain link card.",
+    {
+      url: z.string().url().describe("Polymarket event/market URL, e.g. https://polymarket.com/event/los-angeles-mayoral-election-117"),
+      title: z.string().optional().describe("Optional post title"),
+      description: z.string().optional().describe("Optional post description"),
+      tags: z.string().optional().describe("Comma-separated tags"),
+      status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
+      publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
+    },
+    async (params) => {
+      if (!isPolymarketUrl(params.url)) {
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              error: "NOT_A_POLYMARKET_URL",
+              message: "Pass a polymarket.com market/event URL. For ordinary links, use doomscrollr_publish_post.",
+              url: params.url,
+            }, null, 2),
+          }],
+        };
+      }
+
+      const result = await client.createPolymarketPost({
+        ...params,
+        status: params.status ?? "published",
+      });
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
   );

@@ -4,7 +4,7 @@
 
 const DEFAULT_BASE_URL = "https://doomscrollr.com/api/v1";
 const CLIENT_NAME = "@doomscrollr/mcp-server";
-const CLIENT_VERSION = "1.0.23";
+const CLIENT_VERSION = "1.1.1";
 
 export class DoomscrollrClient {
   private baseUrl: string;
@@ -142,6 +142,17 @@ export class DoomscrollrClient {
     shoppable?: boolean;
   }) {
     return this.request("POST", "/posts", params);
+  }
+
+  async createPolymarketPost(params: {
+    url: string;
+    title?: string;
+    description?: string;
+    tags?: string;
+    status?: string;
+    publish_at?: string;
+  }) {
+    return this.request("POST", "/posts", { ...params, post_type: "url_embed" });
   }
 
   async createImagePost(params: {

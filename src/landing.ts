@@ -191,7 +191,7 @@ const TOOL_GROUPS: Array<{ name: string; tools: string[] }> = [
   },
   {
     name: "Posts + pages",
-    tools: ["publish_post", "publish_image_post", "post_shopmy_products", "list_posts", "update_post", "delete_post", "create_page", "create_contact_page"],
+    tools: ["publish_post", "publish_polymarket_post", "publish_image_post", "post_shopmy_products", "list_posts", "update_post", "delete_post", "create_page", "create_contact_page"],
   },
   {
     name: "Commerce",
@@ -559,7 +559,7 @@ export const LLMS_TXT = `# DOOMSCROLLR MCP + API
 ## Selected tool groups
 - Replacement flows: doomscrollr_build_linktree, doomscrollr_build_komi, doomscrollr_build_shopify, doomscrollr_build_ecommerce, doomscrollr_build_substack, doomscrollr_build_newsletter, doomscrollr_build_website, doomscrollr_build_social_feed, doomscrollr_build_membership
 - Account/settings: doomscrollr_create_world, doomscrollr_get_profile, doomscrollr_get_settings, doomscrollr_update_settings, doomscrollr_apply_style_preset
-- Posts/pages: doomscrollr_publish_post, doomscrollr_publish_image_post, doomscrollr_post_shopmy_products, doomscrollr_list_posts, doomscrollr_update_post, doomscrollr_delete_post, doomscrollr_create_page, doomscrollr_create_contact_page
+- Posts/pages: doomscrollr_publish_post, doomscrollr_publish_polymarket_post, doomscrollr_publish_image_post, doomscrollr_post_shopmy_products, doomscrollr_list_posts, doomscrollr_update_post, doomscrollr_delete_post, doomscrollr_create_page, doomscrollr_create_contact_page
 - Commerce: doomscrollr_create_product, doomscrollr_list_products, doomscrollr_scrape_shopify_products, doomscrollr_import_shopify_products, doomscrollr_update_product, doomscrollr_delete_product (physical products, Shopify/catalog imports and compatible public product JSON feeds, digital downloads, event tickets, courses, memberships, software/licenses, ebooks, templates, presets, services, coaching, subscriptions)
 - Audience: doomscrollr_add_subscriber, doomscrollr_update_subscriber, doomscrollr_list_subscribers, doomscrollr_remove_subscriber, doomscrollr_get_embed_code
 - Domains/integrations/imports: doomscrollr_search_domains, doomscrollr_connect_domain, doomscrollr_buy_domain, doomscrollr_domain_status, doomscrollr_search_pinterest, doomscrollr_search_pinterest_and_post, doomscrollr_connect_pinterest, doomscrollr_connect_rss

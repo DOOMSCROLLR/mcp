@@ -74,7 +74,7 @@ All tools are namespaced `doomscrollr_*`.
 | Risk | Tools / categories | Notes |
 |---|---|---|
 | Read-only | `get_profile`, `get_settings`, `list_posts`, `list_products`, `list_subscribers`, `top_liked_posts`, `get_embed_code`, `domain_status`, integration status tools | Safe for inspection and analytics. |
-| Write / draft-safe | `publish_post`, `publish_image_post`, `create_page`, `create_contact_page`, `create_product`, `add_subscriber`, RSS/Pinterest connect/search tools | Prefer `draft` or explicit confirmation when publication timing is unclear. |
+| Write / draft-safe | `publish_post`, `publish_polymarket_post`, `publish_image_post`, `create_page`, `create_contact_page`, `create_product`, `add_subscriber`, RSS/Pinterest connect/search tools | Prefer `draft` or explicit confirmation when publication timing is unclear. |
 | Destructive | `delete_post`, `delete_product`, `remove_subscriber`, bulk delete tools, disconnect integration/domain tools | Ask for explicit confirmation before calling. |
 | Payment/domain-sensitive | `buy_domain`, price/inventory/subscription changes, checkout-related product edits | Requires explicit user approval. |
 
@@ -84,7 +84,7 @@ All tools are namespaced `doomscrollr_*`.
 |---|---|
 | Build-me flows | `build_linktree`, `build_komi`, `build_shopify`, `build_ecommerce`, `build_substack`, `build_newsletter`, `build_website`, `build_social_feed`, `build_membership` |
 | Account/settings | `create_world`, `get_profile`, `get_settings`, `update_settings`, `apply_style_preset`, `prepare_user_questions` |
-| Posts/pages | `publish_post`, `publish_image_post`, `post_shopmy_products`, `list_posts`, `update_post`, `delete_post`, `create_page`, `create_contact_page` |
+| Posts/pages | `publish_post`, `publish_polymarket_post`, `publish_image_post`, `post_shopmy_products`, `list_posts`, `update_post`, `delete_post`, `create_page`, `create_contact_page` |
 | Commerce | `create_product`, `list_products`, `scrape_shopify_products`, `import_shopify_products`, `update_product`, `delete_product`, bulk product tools |
 | Storefront imports | `scrape_shopify_products`, `scrape_gumroad_products`, `scrape_payhip_products`, `scrape_bandcamp_products`, `scrape_bigcartel_products`, `scrape_url_products` (auto-detect) and matching `import_*_products` |
 | Audience | `add_subscriber`, `update_subscriber`, `list_subscribers`, `remove_subscriber`, `export_audience_csv`, bulk subscriber tools |
