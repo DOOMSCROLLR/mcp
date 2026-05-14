@@ -63,9 +63,14 @@ jobs:
             echo "skipped_missing_token=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          npm publish --access public --provenance
-          echo "published=true" >> "$GITHUB_OUTPUT"
-          echo "skipped_missing_token=false" >> "$GITHUB_OUTPUT"
+          if npm publish --access public --provenance; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "skipped_missing_token=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::npm publish failed. Check that NPM_TOKEN exists, is not expired, and has publish rights for @doomscrollr/mcp-server. Continuing so the workflow reports the package as blocked instead of failing the whole run."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "skipped_missing_token=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Read server.json version
         id: server
