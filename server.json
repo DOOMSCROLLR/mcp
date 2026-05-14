@@ -3,7 +3,7 @@
   "name": "com.doomscrollr/mcp",
   "title": "DOOMSCROLLR",
   "description": "Build owned-audience websites: pages, posts, products, subscribers, ShopMy/Shopify imports.",
-  "version": "1.0.23",
+  "version": "1.1.2",
   "repository": {
     "url": "https://github.com/DOOMSCROLLR/mcp",
     "source": "github"
@@ -19,14 +19,14 @@
     {
       "registryType": "npm",
       "identifier": "@doomscrollr/mcp-server",
-      "version": "1.0.23",
+      "version": "1.1.2",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "DOOMSCROLLR_API_KEY",
-          "description": "Your DOOMSCROLLR API key (Dashboard → Settings → API keys at doomscrollr.com).",
+          "description": "Your DOOMSCROLLR API key (Dashboard \u2192 Settings \u2192 API keys at doomscrollr.com).",
           "isRequired": true,
           "isSecret": true,
           "format": "string"

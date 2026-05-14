@@ -12,6 +12,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
 
     steps:
       - name: Checkout
@@ -50,19 +52,31 @@ jobs:
           fi
 
       - name: Publish to npm
+        id: npm_publish
         if: steps.npm_check.outputs.published == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::notice::NPM_TOKEN is not configured; skipping npm publish."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "skipped_missing_token=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          npm publish --access public --provenance
+          echo "published=true" >> "$GITHUB_OUTPUT"
+          echo "skipped_missing_token=false" >> "$GITHUB_OUTPUT"
 
       - name: Read server.json version
         id: server
+        if: steps.npm_check.outputs.published == 'true' || steps.npm_publish.outputs.published == 'true'
         run: |
           VERSION=$(node -p "require('./server.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Registry version: $VERSION"
 
       - name: Install mcp-publisher
+        if: steps.npm_check.outputs.published == 'true' || steps.npm_publish.outputs.published == 'true'
         run: |
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
           ARCH=$(uname -m)
@@ -78,10 +92,12 @@ jobs:
           mcp-publisher --version || true
 
       - name: Validate registry metadata
+        if: steps.npm_check.outputs.published == 'true' || steps.npm_publish.outputs.published == 'true'
         run: mcp-publisher validate
 
       - name: Check if registry version already published
         id: reg_check
+        if: steps.npm_check.outputs.published == 'true' || steps.npm_publish.outputs.published == 'true'
         run: |
           VERSION=${{ steps.server.outputs.version }}
           STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://registry.modelcontextprotocol.io/v0/servers?search=com.doomscrollr/mcp")
@@ -94,7 +110,7 @@ jobs:
           fi
 
       - name: Publish to MCP Registry
-        if: steps.reg_check.outputs.published == 'false' && env.MCP_REGISTRY_PRIVATE_KEY != ''
+        if: (steps.npm_check.outputs.published == 'true' || steps.npm_publish.outputs.published == 'true') && steps.reg_check.outputs.published == 'false' && env.MCP_REGISTRY_PRIVATE_KEY != ''
         env:
           MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
         run: |
@@ -102,7 +118,7 @@ jobs:
           mcp-publisher publish
 
       - name: Skip MCP Registry publish when registry key is missing
-        if: steps.reg_check.outputs.published == 'false' && env.MCP_REGISTRY_PRIVATE_KEY == ''
+        if: (steps.npm_check.outputs.published == 'true' || steps.npm_publish.outputs.published == 'true') && steps.reg_check.outputs.published == 'false' && env.MCP_REGISTRY_PRIVATE_KEY == ''
         env:
           MCP_REGISTRY_PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
         run: echo "MCP_REGISTRY_PRIVATE_KEY is not configured; npm publish can still complete."
@@ -111,5 +127,5 @@ jobs:
         if: always()
         run: |
           echo "### MCP publish summary" >> $GITHUB_STEP_SUMMARY
-          echo "- npm @doomscrollr/mcp-server@${{ steps.pkg.outputs.version }} — already_published=${{ steps.npm_check.outputs.published }}" >> $GITHUB_STEP_SUMMARY
+          echo "- npm @doomscrollr/mcp-server@${{ steps.pkg.outputs.version }} — already_published=${{ steps.npm_check.outputs.published }}, published_now=${{ steps.npm_publish.outputs.published }}, skipped_missing_token=${{ steps.npm_publish.outputs.skipped_missing_token }}" >> $GITHUB_STEP_SUMMARY
           echo "- registry com.doomscrollr/mcp@${{ steps.server.outputs.version }} — already_published=${{ steps.reg_check.outputs.published }}" >> $GITHUB_STEP_SUMMARY
