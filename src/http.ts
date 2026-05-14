@@ -534,7 +534,7 @@ app.get("/.well-known/mcp/server-card.json", (_req, res) => {
           },
           {
                 "name": "doomscrollr_publish_post",
-                "description": "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers. Set shoppable=true to show a buy button for product/commerce links. Polymarket URLs are automatically rendered as owned widget embeds.",
+                "description": "Publish a link post to your DOOMSCROLLR. DOOMSCROLLR tries to fetch/repair preview metadata first and returns a diagnostic without creating the post if it would render broken. Set shoppable=true to show a buy button for product/commerce links. Polymarket URLs are automatically rendered as owned widget embeds.",
                 "inputSchema": {
                       "type": "object",
                       "properties": {},

@@ -137,7 +137,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   const server = new McpServer({
     name: "doomscrollr",
-    version: "1.1.1",
+    version: "1.1.2",
   });
 
   registerWidgetResources(server);
@@ -281,7 +281,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_publish_post",
-    "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers. Polymarket URLs automatically render as owned widget embeds; use doomscrollr_publish_polymarket_post when the user specifically asks for a Polymarket odds post. Set shoppable=true to show a buy button for product/commerce links.",
+    "Publish a link post to your DOOMSCROLLR. Share articles, products, events, or any URL with subscribers. DOOMSCROLLR tries to fetch/repair preview metadata before publishing and returns a clear diagnostic without creating the post if the source would render broken. Polymarket URLs automatically render as owned widget embeds; use doomscrollr_publish_polymarket_post when the user specifically asks for a Polymarket odds post. Set shoppable=true to show a buy button for product/commerce links.",
     {
       url: z.string().url().describe("URL to share"),
       title: z.string().optional().describe("Post title"),
@@ -290,31 +290,24 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       status: z.enum(["published", "draft", "scheduled"]).optional().describe("Post status (default: published; scheduled when publish_at is supplied)"),
       publish_at: z.string().datetime().optional().describe("Future ISO 8601 datetime to schedule publication, e.g. 2026-05-01T17:00:00Z"),
       shoppable: z.boolean().optional().describe("Show a buy button on this post. Use true for product/Shopify/commerce links when the user asks for buy buttons."),
-      allow_no_image: z.boolean().optional().describe("Advanced override: allow publishing even when the source URL has no usable social preview image. Defaults to false to prevent broken/favicon placeholder posts."),
+      allow_no_image: z.boolean().optional().describe("Advanced override: allow publishing even when DOOMSCROLLR cannot find a usable preview image/embed after server-side repair. Defaults to false to prevent broken posts."),
     },
     async ({ allow_no_image, ...params }) => {
-      const status = params.status ?? "published";
-      if (!allow_no_image && status !== "draft" && !isPolymarketUrl(params.url)) {
-        const preview = await inspectLinkPreviewImage(params.url);
-        if (!preview.ok) {
-          return {
-            content: [{
-              type: "text",
-              text: JSON.stringify({
-                error: "POST_NOT_CREATED_MISSING_USABLE_IMAGE",
-                message: "This URL does not expose a usable social preview image, so DOOMSCROLLR did not publish it. Create it as a draft, provide a real image post, or retry with allow_no_image=true if you intentionally want a text-only/link-only post.",
-                url: params.url,
-                reason: preview.reason,
-                detected_image: preview.image ?? null,
-                suggested_action: "Use status='draft' for review or doomscrollr_publish_image_post with a real image URL.",
-              }, null, 2),
-            }],
-          };
-        }
+      try {
+        const result = await client.createLinkPost({
+          ...params,
+          status: params.status ?? "published",
+          allow_no_image,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: error instanceof Error ? error.message : JSON.stringify({ error: String(error) }, null, 2),
+          }],
+        };
       }
-
-      const result = await client.createLinkPost(params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
   );
 

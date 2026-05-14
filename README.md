@@ -74,7 +74,7 @@ All tools are namespaced `doomscrollr_*`.
 | Risk | Tools / categories | Notes |
 |---|---|---|
 | Read-only | `get_profile`, `get_settings`, `list_posts`, `list_products`, `list_subscribers`, `top_liked_posts`, `get_embed_code`, `domain_status`, integration status tools | Safe for inspection and analytics. |
-| Write / draft-safe | `publish_post`, `publish_polymarket_post`, `publish_image_post`, `create_page`, `create_contact_page`, `create_product`, `add_subscriber`, RSS/Pinterest connect/search tools | Prefer `draft` or explicit confirmation when publication timing is unclear. |
+| Write / draft-safe | `publish_post`, `publish_polymarket_post`, `publish_image_post`, `create_page`, `create_contact_page`, `create_product`, `add_subscriber`, RSS/Pinterest connect/search tools | Prefer `draft` or explicit confirmation when publication timing is unclear. `publish_post` asks DOOMSCROLLR to repair/fetch preview metadata first and reports a clear error instead of creating broken published posts. |
 | Destructive | `delete_post`, `delete_product`, `remove_subscriber`, bulk delete tools, disconnect integration/domain tools | Ask for explicit confirmation before calling. |
 | Payment/domain-sensitive | `buy_domain`, price/inventory/subscription changes, checkout-related product edits | Requires explicit user approval. |
 

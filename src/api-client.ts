@@ -4,7 +4,7 @@
 
 const DEFAULT_BASE_URL = "https://doomscrollr.com/api/v1";
 const CLIENT_NAME = "@doomscrollr/mcp-server";
-const CLIENT_VERSION = "1.1.1";
+const CLIENT_VERSION = "1.1.2";
 
 export class DoomscrollrClient {
   private baseUrl: string;
@@ -45,7 +45,11 @@ export class DoomscrollrClient {
         (data as Record<string, unknown>).error ||
         (data as Record<string, unknown>).message ||
         `HTTP ${res.status}`;
-      throw new Error(String(msg));
+      throw new Error(JSON.stringify({
+        error: msg,
+        status: res.status,
+        response: data,
+      }, null, 2));
     }
 
     return data as T;
@@ -140,6 +144,7 @@ export class DoomscrollrClient {
     status?: string;
     publish_at?: string;
     shoppable?: boolean;
+    allow_no_image?: boolean;
   }) {
     return this.request("POST", "/posts", params);
   }
