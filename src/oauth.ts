@@ -252,8 +252,6 @@ export function renderAuthorizePage(req: Request, res: Response) {
     input { width:100%; box-sizing:border-box; padding:14px; border:2px solid #000; border-radius:0; font:inherit; }
     button { margin-top:18px; width:100%; padding:14px; border:2px solid #000; border-radius:0; background:#E7FF00; color:#000; font:inherit; font-weight:900; cursor:pointer; box-shadow:4px 4px 0 #000; }
     small { display:block; margin-top:14px; }
-    details { margin-top:18px; border-top:2px solid #000; padding-top:18px; }
-    summary { cursor:pointer; font-weight:800; }
   </style>
 </head>
 <body>
@@ -269,12 +267,6 @@ export function renderAuthorizePage(req: Request, res: Response) {
       <label for="username">Hub username <small style="display:inline;font-weight:400;">optional, only needed if your login controls multiple hubs</small></label>
       <input id="username" name="username" type="text" autocomplete="off" placeholder="secureprintdmv">
       <button type="submit">Authorize</button>
-      <details>
-        <summary>Use an API key instead</summary>
-        <label for="api_key">DOOMSCROLLR API key</label>
-        <input id="api_key" name="api_key" type="password" autocomplete="off">
-        <small>Advanced/testing fallback. Reviewers should use the email and password supplied with the app submission.</small>
-      </details>
     </form>
   </main>
 </body>
