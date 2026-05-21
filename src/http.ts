@@ -624,7 +624,7 @@ app.get("/.well-known/mcp/server-card.json", (_req, res) => {
           },
           {
                 "name": "doomscrollr_update_settings",
-                "description": "Update appearance and settings \\u2014 name/bio, SEO, logo/favicon/OG image, logo max width, fonts/layout, analytics, draft mode, popup, CTA bar, and buy button styling.",
+                "description": "Update appearance and settings \\u2014 name/bio, SEO, logo/favicon/OG image, logo max width, advanced layout, custom CSS/JS, Google Translate, email capture, subscriptions, popup, CTA bar, and buy button styling.",
                 "inputSchema": {
                       "type": "object",
                       "properties": {},
