@@ -1202,7 +1202,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_get_settings",
-    "Get full DOOMSCROLLR settings — SEO, analytics, layout, popup, CTA bar, buy button, draft mode, and images.",
+    "Get full DOOMSCROLLR settings — SEO, analytics, layout, popup, CTA bar, logo sizing, buy button, draft mode, and images.",
     {},
     async () => {
       const result = await client.getSettings();
@@ -1212,7 +1212,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
 
   server.tool(
     "doomscrollr_update_settings",
-    "Update appearance and settings — name/bio, SEO, logo/favicon/OG image, fonts/layout, analytics, draft mode, popup, CTA bar, and buy button styling.",
+    "Update appearance and settings — name/bio, SEO, logo/favicon/OG image, logo max width, fonts/layout, analytics, draft mode, popup, CTA bar, and buy button styling.",
     {
       name: z.string().optional().describe("Display name"),
       bio: z.string().optional().describe("Bio/description"),
@@ -1221,6 +1221,7 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
       logo: z.string().optional().describe("Logo image URL"),
       favicon: z.string().optional().describe("Favicon image URL"),
       og_image: z.string().optional().describe("Open Graph/social share image URL"),
+      logo_max_width: z.number().int().min(1).max(2000).optional().describe("Maximum rendered logo width in pixels"),
       font_id: z.number().int().optional().describe("Google Font ID"),
       user_theme: z.string().optional().describe("Theme identifier"),
       desktop_grid: z.number().int().min(1).max(10).optional().describe("Desktop grid columns"),
