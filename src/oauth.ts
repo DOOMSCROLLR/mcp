@@ -264,8 +264,8 @@ export function renderAuthorizePage(req: Request, res: Response) {
       <input id="email" name="email" type="email" autocomplete="username" autofocus>
       <label for="password">Password</label>
       <input id="password" name="password" type="password" autocomplete="current-password">
-      <label for="username">Hub username <small style="display:inline;font-weight:400;">optional, only needed if your login controls multiple hubs</small></label>
-      <input id="username" name="username" type="text" autocomplete="off" placeholder="secureprintdmv">
+      <label for="username">Hub username</label>
+      <input id="username" name="username" type="text" autocomplete="off">
       <button type="submit">Authorize</button>
     </form>
   </main>
