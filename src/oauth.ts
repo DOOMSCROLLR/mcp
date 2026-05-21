@@ -128,6 +128,42 @@ async function validateDoomscrollrApiKey(apiKey: string, baseUrl: string): Promi
   }
 }
 
+type CredentialExchangeResult = {
+  apiKey: string | null;
+  error?: string;
+};
+
+async function exchangeDoomscrollrCredentials(email: string, password: string, username: string, baseUrl: string): Promise<CredentialExchangeResult> {
+  if (!email || !password) {
+    return { apiKey: null, error: "Enter your DOOMSCROLLR email and password." };
+  }
+
+  try {
+    const res = await fetch(`${baseUrl.replace(/\/+$/, "")}/oauth/credentials`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, username: username || undefined }),
+    });
+
+    const data = await res.json().catch(() => null) as { api_key?: unknown; message?: unknown; errors?: Record<string, string[]> } | null;
+
+    if (!res.ok) {
+      const firstError = data?.errors ? Object.values(data.errors).flat()[0] : null;
+      return {
+        apiKey: null,
+        error: firstError || (typeof data?.message === "string" ? data.message : "Invalid DOOMSCROLLR email or password."),
+      };
+    }
+
+    return { apiKey: typeof data?.api_key === "string" ? data.api_key : null };
+  } catch {
+    return { apiKey: null, error: "Could not reach DOOMSCROLLR to verify these credentials." };
+  }
+}
+
 export function resolveDoomscrollrApiKeyFromBearer(token: string): string | null {
   const oauthAccess = readOAuthToken(token, "access");
   if (oauthAccess) return oauthAccess.apiKey;
@@ -213,22 +249,33 @@ export function renderAuthorizePage(req: Request, res: Response) {
     h1 { font-size:28px; margin:0 0 12px; }
     p { line-height:1.5; }
     label { display:block; font-weight:800; margin:18px 0 8px; }
-    input[type=password] { width:100%; box-sizing:border-box; padding:14px; border:2px solid #000; border-radius:0; font:inherit; }
+    input { width:100%; box-sizing:border-box; padding:14px; border:2px solid #000; border-radius:0; font:inherit; }
     button { margin-top:18px; width:100%; padding:14px; border:2px solid #000; border-radius:0; background:#E7FF00; color:#000; font:inherit; font-weight:900; cursor:pointer; box-shadow:4px 4px 0 #000; }
     small { display:block; margin-top:14px; }
+    details { margin-top:18px; border-top:2px solid #000; padding-top:18px; }
+    summary { cursor:pointer; font-weight:800; }
   </style>
 </head>
 <body>
   <main>
     <h1>Authorize DOOMSCROLLR MCP</h1>
-    <p>Paste a limited/test DOOMSCROLLR API key to let this client call the MCP server on your behalf. The key is exchanged for an OAuth access token.</p>
+    <p>Sign in with your DOOMSCROLLR account to let this client call the MCP server on your behalf. We exchange your sign-in for a short-lived OAuth token for ChatGPT.</p>
     <form method="post" action="/oauth/authorize" autocomplete="off" target="_top">
       ${hidden}
-      <label for="api_key">DOOMSCROLLR API key</label>
-      <input id="api_key" name="api_key" type="password" autocomplete="off" required autofocus>
+      <label for="email">DOOMSCROLLR email</label>
+      <input id="email" name="email" type="email" autocomplete="username" autofocus>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password">
+      <label for="username">Hub username <small style="display:inline;font-weight:400;">optional, only needed if your login controls multiple hubs</small></label>
+      <input id="username" name="username" type="text" autocomplete="off" placeholder="secureprintdmv">
       <button type="submit">Authorize</button>
+      <details>
+        <summary>Use an API key instead</summary>
+        <label for="api_key">DOOMSCROLLR API key</label>
+        <input id="api_key" name="api_key" type="password" autocomplete="off">
+        <small>Advanced/testing fallback. Reviewers should use the email and password supplied with the app submission.</small>
+      </details>
     </form>
-    <small>Get an API key from the DOOMSCROLLR dashboard. Do not use a production key unless you trust this client.</small>
   </main>
 </body>
 </html>`);
@@ -295,15 +342,28 @@ export async function completeAuthorize(req: Request, res: Response, baseUrl: st
   const state = getParam(req, "state");
   const codeChallenge = getParam(req, "code_challenge");
   const codeChallengeMethod = getParam(req, "code_challenge_method") || "plain";
-  const apiKey = getParam(req, "api_key");
+  const suppliedApiKey = getParam(req, "api_key");
+  const email = getParam(req, "email");
+  const password = getParam(req, "password");
+  const username = getParam(req, "username");
 
   if (responseType !== "code" || !clientId || !redirectUri) {
     return res.status(400).send("Invalid OAuth authorization request.");
   }
 
+  let apiKey = suppliedApiKey;
+
+  if (!apiKey) {
+    const exchange = await exchangeDoomscrollrCredentials(email, password, username, baseUrl);
+    if (!exchange.apiKey) {
+      return res.status(401).send(exchange.error || "Invalid DOOMSCROLLR email or password. Go back and try the credentials supplied with the app submission.");
+    }
+    apiKey = exchange.apiKey;
+  }
+
   const validApiKey = await validateDoomscrollrApiKey(apiKey, baseUrl);
   if (!validApiKey) {
-    return res.status(401).send("Invalid DOOMSCROLLR API key. Go back and try a valid limited/test key.");
+    return res.status(401).send("Invalid DOOMSCROLLR credentials. Go back and try the credentials supplied with the app submission.");
   }
 
   const code = oauthToken("dsc", {
