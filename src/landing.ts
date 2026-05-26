@@ -8,6 +8,8 @@
  */
 
 const ENDPOINT = "https://mcp.doomscrollr.com/mcp";
+const CLAUDE_CONNECTOR_LINK =
+  "https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=DOOMSCROLLR&connectorUrl=https%3A%2F%2Fmcp.doomscrollr.com%2Fmcp";
 const PACKAGE = "@doomscrollr/mcp-server";
 const BRAND = "DOOMSCROLLR";
 const TITLE = `${BRAND} MCP + API — Build Owned Audience Websites from AI Agents`;
@@ -19,6 +21,8 @@ const SETUP_CARDS: Array<{
   label: string;
   body: string;
   code: string;
+  ctaHref?: string;
+  ctaLabel?: string;
 }> = [
   {
     surface: "Start here",
@@ -40,11 +44,14 @@ Build me a Linktree, Shopify drop, ShopMy storefront, Substack, event page, or m
   },
   {
     surface: "Claude",
-    label: "Copy/paste prompt",
-    body: "Until you wire the connector, just give Claude the MCP site and your goal. Claude can walk you through account/API-key setup and then use DOOMSCROLLR for the build.",
-    code: `Use DOOMSCROLLR for this: https://mcp.doomscrollr.com
-
-Help me make a DOOMSCROLLR account, get an API key from Dashboard → Settings → API keys, connect it if you can, then build this as an owned-audience website: [describe what you want].`,
+    label: "One-click custom connector",
+    body: "Add DOOMSCROLLR to Claude as a custom connector now. The directory listing is under review, so this is the fastest per-account path until it is searchable in Claude.",
+    code: `1. Click “Add to Claude” below
+2. Review the prefilled DOOMSCROLLR connector
+3. Confirm the MCP URL: ${ENDPOINT}
+4. Create a DOOMSCROLLR API key in Dashboard → Settings → API keys when Claude asks`,
+    ctaHref: CLAUDE_CONNECTOR_LINK,
+    ctaLabel: "Add to Claude",
   },
   {
     surface: "ChatGPT",
@@ -280,6 +287,7 @@ export function renderLandingPage(): string {
         <div class="setup-card__eyebrow">${escapeHtml(card.label)}</div>
         <h3>${escapeHtml(card.surface)}</h3>
         <p>${escapeHtml(card.body)}</p>
+        ${card.ctaHref ? `<a class="setup-card__cta" href="${escapeHtml(card.ctaHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.ctaLabel || "Connect")} ↗</a>` : ""}
         <pre><code>${escapeHtml(card.code)}</code></pre>
       </article>
     `
@@ -397,6 +405,7 @@ ${jsonLd()}
   .setup-card__eyebrow { display: inline-block; background: var(--blue); border: 2px solid var(--black); padding: 3px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
   .setup-card h3 { font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
   .setup-card p { font-size: 12px; min-height: 58px; }
+  .setup-card__cta { display: inline-block; background: var(--lime); border: 2px solid var(--black); box-shadow: var(--shadow); color: var(--black); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; margin-top: 10px; padding: 8px 12px; text-decoration: none; text-transform: uppercase; }
   pre { background: var(--black); color: var(--white); padding: 14px 16px; overflow-x: auto; max-width: 100%; font-size: 11px; line-height: 1.55; white-space: pre; margin-top: 14px; border: 0; -webkit-overflow-scrolling: touch; }
   pre code { color: var(--white); }
   .prompt-card { background: var(--lime); }
@@ -444,6 +453,7 @@ ${jsonLd()}
       <div class="badges">
         <a class="badge cta" href="https://doomscrollr.com/register?free=1&utm_source=mcp_landing&utm_medium=hero_cta&utm_campaign=developer_funnel&utm_content=get_api_key">Get API key</a>
         <a class="badge" href="https://doomscrollr.com/featured?utm_source=mcp_landing&utm_medium=hero_badge&utm_campaign=developer_funnel&utm_content=featured_examples">Featured examples</a>
+        <a class="badge" href="${CLAUDE_CONNECTOR_LINK}">Add to Claude</a>
         <a class="badge" href="https://doomscrollr.com/docs/claude.md?utm_source=mcp_landing&utm_medium=hero_badge&utm_campaign=developer_funnel&utm_content=claude_setup">Claude setup</a>
         <a class="badge" href="https://www.npmjs.com/package/${PACKAGE}">MCP npm</a>
         <a class="badge" href="https://clawhub.ai/aaayersss/doomscrollr">ClawHub</a>
