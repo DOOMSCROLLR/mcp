@@ -6,6 +6,7 @@ import { scrapeGumroadProducts } from "./gumroad.js";
 import { scrapePayhipProducts } from "./payhip.js";
 import { scrapeBandcampProducts } from "./bandcamp.js";
 import { scrapeBigCartelProducts } from "./bigcartel.js";
+import { createInstagramAdPack, instagramAdPackSchema } from "./instagram-ad-pack.js";
 import type { ScrapedProduct, ScrapeResult, Platform } from "./scraped-product.js";
 import { registerWidgetResources, widgetResult, widgetToolMeta } from "./widgets.js";
 
@@ -762,6 +763,16 @@ export function createServer(apiKey: string, baseUrl?: string): McpServer {
     {},
     async () => {
       const result = await client.connectInstagram();
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "doomscrollr_create_instagram_ad_pack",
+    "Create a Meta-ready Instagram ad pack for manual launch: copy variants, Reel/Story/Feed concepts, UTM links, landing-page variants, targeting, measurement, and guardrails. This does not launch ads or spend money through Meta Ads API.",
+    instagramAdPackSchema,
+    async (params) => {
+      const result = createInstagramAdPack(params as any);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
   );
