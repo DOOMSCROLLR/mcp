@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.3
+
+- Hardened MCP OAuth Dynamic Client Registration and the authorization prompt.
+  - Registration still stays open for ChatGPT / Claude / Cursor MCP clients, but `client_id` is now a signed binding of `client_name` + `redirect_uris` instead of an unbound UUID.
+  - `/oauth/authorize` rejects unsigned clients, unbound attacker `redirect_uri` values, and requests without PKCE S256. The password form is not shown in those cases.
+  - The consent screen shows the application name, callback host, and full redirect URI. Untrusted or brand-impersonating callbacks require an explicit confirmation checkbox.
+  - `/oauth/register` validates redirect URIs (https or localhost http only), rate-limits by IP, and can optionally require `OAUTH_REGISTRATION_ACCESS_TOKEN`.
+  - Token exchange requires PKCE S256 and an exact `client_id` / `redirect_uri` match. Authorization responses include `iss` (RFC 9207).
+
 ## 1.1.0
 
 - Added public-storefront product scrapers + importers for Gumroad, Payhip, Bandcamp, and Big Cartel.

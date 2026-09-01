@@ -54,6 +54,7 @@ function unauthorized(res: Response) {
 const app = createMcpExpressApp({ host });
 
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: allowedOrigins.includes("*") ? true : allowedOrigins,

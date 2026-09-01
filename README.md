@@ -142,6 +142,11 @@ Use MCP when an agent is directly doing the work. Use REST/OpenAPI for apps and 
 | `PORT` | no | Port for the remote HTTP server |
 | `HOST` | no | Host bind for the remote HTTP server, default `0.0.0.0` |
 | `MCP_ALLOWED_ORIGINS` | no | Comma-separated CORS origins for the remote HTTP server, default `*` |
+| `OAUTH_TOKEN_SECRET` | yes in production | Secret used to sign OAuth client IDs and tokens. Required when `NODE_ENV=production`. |
+| `OAUTH_ISSUER` | no | Public authorization-server issuer, default `https://mcp.doomscrollr.com` |
+| `OAUTH_REGISTRATION_ACCESS_TOKEN` | no | If set, `POST /oauth/register` requires `Authorization: Bearer <token>`. Leave unset for ChatGPT/Claude/Cursor Dynamic Client Registration. |
+| `OAUTH_TRUSTED_REDIRECT_HOSTS` | no | Extra comma-separated hosts treated as first-party MCP callbacks |
+| `OAUTH_STRICT_REDIRECT_HOSTS` | no | If `1`, reject registration and authorization for callbacks outside the trusted-host list |
 
 ## Development
 
@@ -164,6 +169,7 @@ npx @modelcontextprotocol/inspector node dist/index.js
 - The MCP server should not log API keys or request bodies.
 - Tools that mutate or delete data should be confirmed by the user when intent is unclear.
 - Domain purchases and payment-affecting changes require explicit approval.
+- MCP OAuth keeps Dynamic Client Registration available for ChatGPT/Claude/Cursor. Client IDs are signed and bound to registered redirect URIs, PKCE S256 is required, and the consent screen shows the callback host. Rotating the account API key revokes outstanding MCP OAuth tokens.
 
 ## License
 
