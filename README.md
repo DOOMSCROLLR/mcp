@@ -145,6 +145,7 @@ Use MCP when an agent is directly doing the work. Use REST/OpenAPI for apps and 
 | `OAUTH_TOKEN_SECRET` | yes in production | Secret used to sign OAuth client IDs and tokens. Required when `NODE_ENV=production`. |
 | `OAUTH_ISSUER` | no | Public authorization-server issuer, default `https://mcp.doomscrollr.com` |
 | `OAUTH_REGISTRATION_ACCESS_TOKEN` | no | If set, `POST /oauth/register` requires `Authorization: Bearer <token>`. Leave unset for ChatGPT/Claude/Cursor Dynamic Client Registration. |
+| `OAUTH_CREDENTIALS_SHARED_SECRET` | no | If set, credential exchange sends `X-Doomscrollr-OAuth-Internal` to `POST /api/v1/oauth/credentials`. Must match the same env var on the DOOMSCROLLR app. |
 | `OAUTH_TRUSTED_REDIRECT_HOSTS` | no | Extra comma-separated hosts treated as first-party MCP callbacks |
 | `OAUTH_STRICT_REDIRECT_HOSTS` | no | If `1`, reject registration and authorization for callbacks outside the trusted-host list |
 

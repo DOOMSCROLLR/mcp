@@ -328,6 +328,10 @@ function registrationAccessToken(): string {
   return (process.env.OAUTH_REGISTRATION_ACCESS_TOKEN || "").trim();
 }
 
+function credentialsSharedSecret(): string {
+  return (process.env.OAUTH_CREDENTIALS_SHARED_SECRET || "").trim();
+}
+
 function hasValidRegistrationAccessToken(req: Request): boolean {
   const expected = registrationAccessToken();
   if (!expected) return true;
@@ -366,12 +370,18 @@ async function exchangeDoomscrollrCredentials(email: string, password: string, u
   }
 
   try {
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+    const secret = credentialsSharedSecret();
+    if (secret) {
+      headers["X-Doomscrollr-OAuth-Internal"] = secret;
+    }
+
     const res = await fetch(`${baseUrl.replace(/\/+$/, "")}/oauth/credentials`, {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ email, password, username: username || undefined }),
     });
 

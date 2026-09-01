@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4
+
+- `POST /api/v1/oauth/credentials` can be locked to this server with `OAUTH_CREDENTIALS_SHARED_SECRET`. When set, the authorize password exchange sends `X-Doomscrollr-OAuth-Internal`.
+
 ## 1.1.3
 
 - Hardened MCP OAuth Dynamic Client Registration and the authorization prompt.

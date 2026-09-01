@@ -330,6 +330,54 @@ test("token exchange requires PKCE and the registered redirect", async () => {
   }
 });
 
+test("credential exchange sends the shared secret header when configured", async () => {
+  const previous = process.env.OAUTH_CREDENTIALS_SHARED_SECRET;
+  process.env.OAUTH_CREDENTIALS_SHARED_SECRET = "mcp-internal-secret";
+  const { challenge } = pkcePair();
+  const created = registerClient("https://chatgpt.com/connector_platform_oauth_redirect", "ChatGPT");
+  const previousFetch = globalThis.fetch;
+  let seenHeaders = null;
+
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    if (url.includes("/oauth/credentials")) {
+      seenHeaders = init?.headers ?? {};
+      return Response.json({ api_key: "test-api-key" });
+    }
+    if (url.includes("/profile")) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }
+    return new Response("not found", { status: 404 });
+  };
+
+  try {
+    const authorizeRes = mockRes();
+    await completeAuthorize(
+      mockReq({
+        body: {
+          ...authorizeQuery(
+            created.body.client_id,
+            "https://chatgpt.com/connector_platform_oauth_redirect",
+            challenge
+          ),
+          email: "owner@example.com",
+          password: "password",
+        },
+      }),
+      authorizeRes,
+      "https://example.test/api/v1"
+    );
+
+    assert.equal(authorizeRes.statusCode, 200);
+    assert.equal(seenHeaders["X-Doomscrollr-OAuth-Internal"], "mcp-internal-secret");
+    assert.match(String(authorizeRes.body), /[?&]code=/);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previous === undefined) delete process.env.OAUTH_CREDENTIALS_SHARED_SECRET;
+    else process.env.OAUTH_CREDENTIALS_SHARED_SECRET = previous;
+  }
+});
+
 test("optional registration access token rejects unauthenticated DCR", () => {
   const previous = process.env.OAUTH_REGISTRATION_ACCESS_TOKEN;
   process.env.OAUTH_REGISTRATION_ACCESS_TOKEN = "test-initial-access-token";
